@@ -14,13 +14,14 @@ def render_mpl_table(data, name,col_width=3.0, row_height=0.625, font_size=14,
     #colorscale = [[0, '#ffffff']]
     fig = go.Figure(data=[go.Table(
         header=dict(values=list(data.columns),
+                    line_color='darkslategray',
                     fill_color='white',
                     align='left'),
         cells=dict(values=[data[x] for x in data.columns],
                    fill_color='white',
                    align='left'))
     ])
-    fig.update_layout(autosize=True,width=650,height=350,margin = dict(l=0, r=90, t=30, b=50))
+    fig.update_layout(autosize=True,width=650,height=350,margin = dict(l=0, r=90, t=30, b=50), font_size= 16, font_color = 'black', )
     fig.write_image(f'{name}.png')
 
 
@@ -36,23 +37,22 @@ image = 'PopPyramid2.png'
 c = canvas.Canvas("sample_report.pdf", pagesize=letter)
 
 # Draw first image
-img1 = Image.open(image)
+c.drawImage('CHAMPAIGN.png', 385, 665, 220, 120)
 c.drawImage('Ethnicimage.png', 35, 155, 220, 65)
 
 # Draw second image
-img2 = Image.open(image)
+
 c.drawImage('Raceimage.png', 20, 290, 260, 150)
 
 # Draw third image
-img3 = Image.open(image)
+
 c.drawImage(image, 50, 450, 280, 180)
 
-c.drawImage('CHAMPAIGN.png', 385, 665, 220, 120)
 
 c.drawImage('Aff.png', 350, 250, 280, 180)
 # Draw fourth image
 img4 = Image.open(image)
-c.drawImage('Val.png', 350, 165, 280, 180)
+c.drawImage('incomeimage.png', 350, 100, 300, 180)
 
 # Draw fifth image
 #img5 = Image.open(image)

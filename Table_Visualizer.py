@@ -8,6 +8,32 @@ import matplotlib.pyplot as plt
 pd.set_option('display.max_rows', None, 'display.max_columns', None)
 
 
+def housing_income(county_name):
+    income_df = pd.read_csv('./Data/Household_income_county.csv')
+    income_df = income_df[income_df['NAME'] == county_name]
+    income_df = income_df[income_df.columns[4:14]]
+    col_list = []
+    for c in income_df.columns:
+        c = c.replace('|', ',')
+        col_list.append(c)
+    income_df.columns = col_list
+    income_df = income_df.T.reset_index()
+    income_df.columns = ['income', 'percent']
+    light_orange = (1.0, 0.8, 0.64)
+    fig, ax = plt.subplots(figsize=(15, 10))
+    sns.set_style('darkgrid')
+    ax = sns.barplot(x=income_df['percent'], y=income_df['income'], orient='h', color=light_orange, width=0.4)
+    ax.bar_label(ax.containers[0], fontsize=20)
+    plt.box(False)
+    ax.set_xlabel('', visible=False)
+    ax.tick_params(axis='y', which='major', labelsize=23)
+    ax.tick_params(axis='x', which='major', labelsize=20)
+    ax.set_ylabel('', visible=False)
+    plt.rc('axes', labelsize=5)
+    plt.xticks(list(range(0, 40, 10)), [str(x) + '%' for x in list(range(0, 40, 10))])
+    plt.savefig('incomeimage.png', dpi=300, bbox_inches='tight')
+
+housing_income('Champaign County')
 def housing_table(county_name):
     housing_county_df = pd.read_csv('./Data/Housing_Tenure_county.csv')
     housing_state_df = pd.read_csv('./Data/Housing_Tenure_state.csv')
@@ -35,7 +61,7 @@ def clean_affordability(affordability_df, affordability1_df, affordability2_df):
     affordability1_df = affordability1_df[col1]
     affordability2_df = affordability2_df[col2]
     affordability_df.columns = ['Median monthly mortgage cost', 'Owner-occupied mortgaged homes']
-    affordability1_df.columns = ['Median gross rent', 'GRAPI, 30-34', 'GRAPI 35+', 'SMOCAPI, 30-34', 'SMOCAPI 35+']
+    affordability1_df.columns = ['Median gross rent, 2021 ($)', 'GRAPI, 30-34', 'GRAPI 35+', 'SMOCAPI, 30-34', 'SMOCAPI 35+']
     affordability1_df['Rent > 30% of household income'] = affordability1_df['GRAPI, 30-34'] + affordability1_df[
         'GRAPI 35+']
     affordability1_df['Cost > 30% of household income'] = affordability1_df['SMOCAPI, 30-34'] + affordability1_df[
@@ -64,7 +90,6 @@ def housing_affordability(county_name):
     state_df = state_df.round(2)
     return state_df
 
-housing_affordability('Champaign County')
 
 def population_by_race(county_name):
     race_df = pd.read_csv('./Data/Population_by_race_county.csv')

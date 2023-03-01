@@ -7,6 +7,7 @@ import requests
 from difflib import SequenceMatcher
 import operator
 import re
+import time
 
 
 def create_list(input_list, rep, pattern):
@@ -14,6 +15,7 @@ def create_list(input_list, rep, pattern):
     for string in input_list:
         string = pattern.sub(lambda m: rep[re.escape(m.group(0))], string)
         string = string.strip(",")
+        string = re.sub(r'(?<=\d),(?=\d)', '|', string)
         row = [element for element in string.split(',') if element != "***"]
         final_list.append(row)
     return final_list
@@ -27,11 +29,6 @@ def request_data(link, table_type):
     col_list = col_response_API.text.split('\n')
     final_df_list = create_list(df_list, rep, pattern)
     final_col_list = create_list(col_list, rep, pattern)
-    for c in final_col_list:
-        for k in c:
-            if re.search('S1901', k):
-                print(c)
-    exit()
     col_df = pd.DataFrame(final_col_list)
     col_dict = {}
     for x, y in zip(col_df[0], col_df[1]):
