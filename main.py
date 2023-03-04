@@ -127,7 +127,7 @@ def clean_population_frame(df: pd.DataFrame) -> pd.DataFrame:
 if __name__ == '__main__':
     rep = {'"': '', '[': '', ']': '', ', ': '.'}
     rep_cols = {'"': '', '[': '', ']': ''}
-    table_dict = {'S0101': 'Population_by_age', 'B02001' : 'Population_by_race', 'B03003' : 'Population_by_ethnicity', 'S1901' : 'Household_income' , 'S1701' : 'Poverty_Status', 'S1501' : 'Educational_Attainment', 'C24050' : 'Major_occupations' ,'B08201' : 'Vehicle_count','B25002':'Housing_Tenure', 'B25003' : 'Housing_value','S2506' :'Housing_affordability', 'DP04' : 'Housing_affordability_1', 'B25077' : 'Housing_affordability_2'}
+    table_dict = {'S0101': 'Population_by_age', 'B02001' : 'Population_by_race', 'B03003' : 'Population_by_ethnicity', 'S1901' : 'Household_income' , 'S1701' : 'Poverty_Status', 'S1501' : 'Educational_Attainment', 'C24050' : 'Major_occupations' ,'B08201' : 'Vehicle_count','B25002':'Housing_Tenure', 'B25003' : 'Housing_rent','S2506' :'Housing_affordability', 'DP04' : 'Housing_affordability_1', 'B25077' : 'Housing_affordability_2'}
     rep = dict((re.escape(k), v) for k, v in rep.items())
     pattern = re.compile("|".join(rep.keys()))
     pattern_cols = re.compile("|".join(rep_cols.keys()))

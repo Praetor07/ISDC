@@ -3,7 +3,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from PIL import Image
 from reportlab.lib.colors import black, gray
-from Table_Visualizer import housing_table, housing_affordability
+from Table_Visualizer import housing_table, housing_affordability, housing_rent
 import plotly.graph_objects as go
 
 
@@ -21,7 +21,7 @@ def render_mpl_table(data, name,col_width=3.0, row_height=0.625, font_size=14,
                    fill_color='white',
                    align='left'))
     ])
-    fig.update_layout(autosize=True,width=650,height=350,margin = dict(l=0, r=90, t=30, b=50), font_size= 16, font_color = 'black', )
+    fig.update_layout(autosize=True,width=750,height=450,margin = dict(l=0, r=90, t=30, b=50), font_size= 16, font_color = 'black', )
     fig.write_image(f'{name}.png')
 
 
@@ -31,37 +31,24 @@ render_mpl_table(df, 'Aff', header_columns=0, col_width=2.0)
 df1 = housing_affordability('Champaign County')
 render_mpl_table(df1, 'Val', header_columns=0, col_width=2.0)
 
+df2 = housing_rent('Champaign County')
+render_mpl_table(df2, 'Rent', header_columns=0, col_width=2.0)
+
 image = 'PopPyramid2.png'
 
 # Create a PDF canvas
 c = canvas.Canvas("sample_report.pdf", pagesize=letter)
 
 # Draw first image
-c.drawImage('CHAMPAIGN.png', 385, 665, 220, 120)
+c.drawImage('CHAMPAIGN.png', 385, 650, 220, 115)
 c.drawImage('Ethnicimage.png', 35, 155, 220, 65)
+c.drawImage('Raceimage.png', 20, 260, 260, 150)
+c.drawImage('PopPyramid2.png', 50, 415, 280, 230)
+c.drawImage('Aff.png', 350, 235, 280, 180)
+c.drawImage('Rent.png', 350, 170, 280, 180)
+c.drawImage('Val.png', 350, 105, 280, 180)
+c.drawImage('incomeimage.png', 350, 445, 300, 180)
 
-# Draw second image
-
-c.drawImage('Raceimage.png', 20, 290, 260, 150)
-
-# Draw third image
-
-c.drawImage(image, 50, 450, 280, 180)
-
-
-c.drawImage('Aff.png', 350, 250, 280, 180)
-# Draw fourth image
-img4 = Image.open(image)
-c.drawImage('incomeimage.png', 350, 100, 300, 180)
-
-# Draw fifth image
-#img5 = Image.open(image)
-#c.drawImage('table_plotly.png', 350, 250, 280, 180)
-
-
-# Draw sixth image
-img6 = Image.open(image)
-c.drawImage(image, 350, 450, 280, 180)
 
 c.setFont('Helvetica',  8)
 d,m = 40,10
@@ -85,20 +72,25 @@ c.drawString(50, 640, f"{'1. Demographics':<45}")
 c.setFont('Helvetica',  10)
 c.setFillColor(gray)
 c.drawString(50, 623, f"{'1.1 Age-Sex Pyramid':<45}")
-c.drawString(50, 440, f"{'1.2 Population by Race':<45}")
-c.drawString(50, 230, f"{'1.3 Population by Ethnicity':<45}")
+c.drawString(50, 420, f"{'1.2 Population by Race':<45}")
+c.drawString(50, 225, f"{'1.3 Population by Ethnicity':<45}")
 c.setFont('Helvetica',  13)
 c.setFillColor(black)
 
 c.drawString(350, 640, f"{'2. Income':<45}")
-c.drawString(350, 440, f"{'3. Housing':<45}")
+c.drawString(350, 435, f"{'3. Housing':<45}")
 c.setFont('Helvetica',  10)
 c.setFillColor(gray)
-c.drawString(350, 423, f"{'3.1 Housing Tenure':<45}")
-c.drawString(350, 340, f"{'3.2 Housing Affordability':<45}")
+c.drawString(350, 418, f"{'3.1 Housing Occupancy Status':<45}")
+c.drawString(350, 350, f"{'3.2 Housing Tenure':<45}")
+c.drawString(350, 290, f"{'3.3 Financial Characteristics of Housing units':<45}")
+c.drawString(350, 625, f"{'2.1 Household Income':<45}")
+c.setFont('Helvetica',  6)
+c.drawString(50, 775, f"{'Illinois State Census Data Center'}")
+c.drawString(470, 775, f"{'County Profile Reports'}")
 c.setFillColor(gray)
-c.line(50,655, 600, 655)
-c.line(325,655, 325, 30)
+#c.line(50,650, 600, 650)
+c.line(325,650, 325, 110)
 
 c.save()
 

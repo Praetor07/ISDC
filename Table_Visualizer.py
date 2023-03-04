@@ -3,9 +3,84 @@ import warnings
 warnings.filterwarnings("ignore")
 import pandas as pd
 import seaborn as sns
-import matplotlib
 import matplotlib.pyplot as plt
 pd.set_option('display.max_rows', None, 'display.max_columns', None)
+
+
+def clean_population_cols(df):
+    df['0 to 9 years'] = df['Under 5 years'] + df['5 to 9 years']
+    df['10 to 19 years'] = df['10 to 14 years'] + df['15 to 19 years']
+    df['20 to 29 years'] = df['20 to 24 years'] + df['25 to 29 years']
+    df['30 to 39 years'] = df['30 to 34 years'] + df['35 to 39 years']
+    df['40 to 49 years'] = df['40 to 44 years'] + df['45 to 49 years']
+    df['50 to 59 years'] = df['50 to 54 years'] + df['55 to 59 years']
+    df['60 to 69 years'] = df['60 to 64 years'] + df['65 to 69 years']
+    df['70 to 79 years'] = df['70 to 74 years'] + df['75 to 79 years']
+    df['80+ years'] = df['80 to 84 years'] + df['85 years and over']
+    df.drop(['Under 5 years', '5 to 9 years', '10 to 14 years',
+       '15 to 19 years', '20 to 24 years', '25 to 29 years', '30 to 34 years',
+       '35 to 39 years', '40 to 44 years', '45 to 49 years', '50 to 54 years',
+       '55 to 59 years', '60 to 64 years', '65 to 69 years', '70 to 74 years',
+       '75 to 79 years', '80 to 84 years', '85 years and over'], axis=1, inplace=True)
+    return df.T
+
+def population_pyramid(county_name):
+    pop_df = pd.read_csv('./Data/Population_by_age_county.csv')
+    pop_df = pop_df[pop_df['NAME'] == county_name]
+    pop_df.columns = [col.replace('TotalTotal population','') for col in pop_df.columns]
+    gender_cols = [col for col in pop_df.columns if re.search('Male|Female', col) and not re.search('Percen|SELECTED|SUMMARY', col)]
+    pop_df = pop_df[gender_cols]
+    dataframe_dict = {'Male': {}, 'Female': {}}
+    for col in pop_df.columns:
+        if re.search('Male', col):
+            temp = re.sub('Male|Total populationAGE','', col)
+            dataframe_dict['Male'][temp] = pop_df[col].values.tolist()[0]
+        elif re.search('Female', col):
+            temp = re.sub('Female|Total populationAGE', '', col)
+            dataframe_dict['Female'][temp] = pop_df[col].values.tolist()[0]
+    for key in dataframe_dict:
+        if key == 'Male':
+            x = pd.DataFrame.from_dict(dataframe_dict['Male'], orient='index')
+            x.columns = ['Male']
+        if key == 'Female':
+            y = pd.DataFrame.from_dict(dataframe_dict['Female'], orient='index')
+            y.columns = ['Female']
+    x = pd.concat([x,y], axis=1)
+    x = clean_population_cols(x.T)
+    x.reset_index(inplace=True)
+    x.columns = ['Age','Male', 'Female']
+    x.drop([0],axis=0, inplace=True)
+    age_order = list(x['Age'].unique()[::-1])
+    fig, ax = plt.subplots(figsize=(20,20))
+    x['Male'] = x['Male']*-1
+    blue= (0.67,  0.75, 0.90)
+    light_orange = (1.0, 0.8, 0.64)
+    ax1 = sns.barplot(x='Male', y='Age', data=x, order=age_order, color=blue, lw =0, width=0.4)
+    sns.barplot(x='Female', y='Age', data=x, order=age_order, color=light_orange, lw =0, width=0.4)
+    ax.tick_params(axis='y', which='major', labelsize=24)
+    ax.tick_params(axis='x', which='major', labelsize=24)
+    plt.xticks(list(range(-25000,25000,5000)), [str(i) + '%' for i in range(-25,25,5)])
+    ax.set_xlabel('', visible=False)
+    plt.box(False)
+    colors = {'Male': blue, 'Female':  light_orange}
+    labels = list(colors.keys())
+    handles = [plt.Rectangle((0, 0), 1, 1, color=colors[label]) for label in labels]
+    plt.legend(handles, labels, fontsize=20)
+    # set the chart title
+    # show the chart
+    plt.savefig('PopPyramid2.png')
+
+
+def housing_rent(county_name):
+    rent_df = pd.read_csv('./Data/Housing_rent_county.csv')
+    rent_state_df = pd.read_csv('./Data/Housing_rent_state.csv')
+    rent_df = rent_df[rent_df['NAME'] == county_name]
+    rent_df = rent_df[['Owner occupied', 'Renter occupied']]
+    rent_state_df = rent_state_df[['Owner occupied', 'Renter occupied']]
+    final_rent_df = pd.concat([rent_df.T,rent_state_df.T], axis=1)
+    final_rent_df.reset_index(inplace=True)
+    final_rent_df.columns = ['', county_name, 'State']
+    return final_rent_df
 
 
 def housing_income(county_name):
@@ -15,6 +90,7 @@ def housing_income(county_name):
     col_list = []
     for c in income_df.columns:
         c = c.replace('|', ',')
+        c = c.replace('HouseholdsTotal','')
         col_list.append(c)
     income_df.columns = col_list
     income_df = income_df.T.reset_index()
@@ -34,6 +110,7 @@ def housing_income(county_name):
     plt.savefig('incomeimage.png', dpi=300, bbox_inches='tight')
 
 housing_income('Champaign County')
+
 def housing_table(county_name):
     housing_county_df = pd.read_csv('./Data/Housing_Tenure_county.csv')
     housing_state_df = pd.read_csv('./Data/Housing_Tenure_state.csv')
