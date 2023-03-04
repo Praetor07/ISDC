@@ -22,7 +22,7 @@ def render_mpl_table(data, name,col_width=3.0, row_height=0.625, font_size=14,
                    align='left'))
     ])
     fig.update_layout(autosize=True,width=750,height=450,margin = dict(l=0, r=90, t=30, b=50), font_size= 16, font_color = 'black', )
-    fig.write_image(f'{name}.png')
+    fig.write_image(f'./Tables/{name}.png')
 
 
 df = housing_table('Champaign County')
@@ -40,14 +40,14 @@ image = 'PopPyramid2.png'
 c = canvas.Canvas("sample_report.pdf", pagesize=letter)
 
 # Draw first image
-c.drawImage('CHAMPAIGN.png', 385, 650, 220, 115)
-c.drawImage('Ethnicimage.png', 35, 155, 220, 65)
-c.drawImage('Raceimage.png', 20, 260, 260, 150)
-c.drawImage('PopPyramid2.png', 50, 415, 280, 230)
-c.drawImage('Aff.png', 350, 235, 280, 180)
-c.drawImage('Rent.png', 350, 170, 280, 180)
-c.drawImage('Val.png', 350, 105, 280, 180)
-c.drawImage('incomeimage.png', 350, 445, 300, 180)
+c.drawImage('./County_images/CHAMPAIGN.png', 385, 650, 220, 115)
+c.drawImage('./Visualizations/Ethnicimage.png', 35, 155, 220, 65)
+c.drawImage('./Visualizations/Raceimage.png', 20, 260, 260, 150)
+c.drawImage('./Visualizations/PopPyramid2.png', 50, 415, 280, 230)
+c.drawImage('./Tables/Aff.png', 350, 235, 280, 180)
+c.drawImage('./Tables/Rent.png', 350, 170, 280, 180)
+c.drawImage('./Tables/Val.png', 350, 105, 280, 180)
+c.drawImage('./Visualizations/incomeimage.png', 350, 445, 300, 180)
 
 
 c.setFont('Helvetica',  8)

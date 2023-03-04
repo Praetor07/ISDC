@@ -68,7 +68,7 @@ def population_pyramid(county_name):
     plt.legend(handles, labels, fontsize=20)
     # set the chart title
     # show the chart
-    plt.savefig('PopPyramid2.png')
+    plt.savefig(f'./Visualizations/{county_name}_PopPyramid2.png')
 
 
 def housing_rent(county_name):
@@ -107,9 +107,8 @@ def housing_income(county_name):
     ax.set_ylabel('', visible=False)
     plt.rc('axes', labelsize=5)
     plt.xticks(list(range(0, 40, 10)), [str(x) + '%' for x in list(range(0, 40, 10))])
-    plt.savefig('incomeimage.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'./Visualizations/{county_name}_incomeimage.png', dpi=300, bbox_inches='tight')
 
-housing_income('Champaign County')
 
 def housing_table(county_name):
     housing_county_df = pd.read_csv('./Data/Housing_Tenure_county.csv')
@@ -197,7 +196,7 @@ def population_by_race(county_name):
     ax.set_ylabel('', visible=False)
     plt.rc('axes', labelsize=5)
     plt.xticks(list(range(0,total,int(0.2*total))),[str(x)+'%' for x in list(range(0,110,20))])
-    plt.savefig('Raceimage.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'./Visualizations/{county_name}_Raceimage.png', dpi=300, bbox_inches='tight')
 
 
 def population_by_ethnicity(county_name):
@@ -213,20 +212,14 @@ def population_by_ethnicity(county_name):
     ax = sns.barplot(x=eth_df['Total'], y=eth_df['Ethnicity'], orient='h', color=light_orange, width=0.2)
     ax.bar_label(ax.containers[0], fontsize=20)
     plt.box(False)
-    #plt.margins(y=1, tight=True)
     plt.tight_layout()
     ax.set_xlabel('', visible=False)
     ax.tick_params(axis='y', which='major', labelsize=23)
     ax.tick_params(axis='x', which='major', labelsize=20)
     ax.set_ylabel('', visible=False)
-    #ax.legend(fontsize=25)
-    #plt.rc('axes', labelsize=5)
     plt.rcParams['font.size'] = 12
     plt.xticks(list(range(0,total,int(0.2*total))), [str(x) + '%' for x in list(range(0, 110, 20))])
-    plt.savefig('Ethnicimage.png', dpi=300, bbox_inches='tight')
-
-
-#population_by_ethnicity('Champaign County')
+    plt.savefig(f'./Visualizations/{county_name}_Ethnicimage.png', dpi=300, bbox_inches='tight')
 
 
 
