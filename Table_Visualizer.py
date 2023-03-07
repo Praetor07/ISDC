@@ -15,7 +15,64 @@ def education_att(county_name):
     edu_df = edu_df[cols]
     finals_cols = [re.sub('EstimateTotalAGE BY EDUCAL ATTAINMENT', '', col) for col in edu_df ]
     col_dict = {'Less than high school' : ['Less than high school graduate', 'Less than 9th grade', '9th to 12th grade.no diploma']}
-    #for col in finals_cols:
+    for col in finals_cols:
+        print(col)
+
+def occupation(county_name):
+    occ_df = pd.read_csv('./Data/Occupation_county.csv')
+    occ_df = occ_df[occ_df['NAME'] == county_name]
+    occ_df.columns = [re.sub('TotalCivilian employed population 16 years and over' ,'', i) for i in occ_df.columns]
+    col_list = ['Management.business.science.and arts occupations', 'Service occupations' ,'Sales and office occupations', 'Natural resources.construction.and maintenance occupations', 'Production.transportation.and material moving occupations']
+    occ_df = occ_df[col_list]
+    finalcols = ['Management, science and related', 'Services', 'Sales and office', 'Natural Resources and maintenance', 'Production and Transportation']
+    occ_df.columns = finalcols
+    occ_df = occ_df.T.reset_index()
+    occ_df.columns = ['Occupation', 'Total']
+    light_orange = (1.0, 0.8, 0.64)
+    fig, ax = plt.subplots(figsize=(15, 10))
+    sns.set_style('darkgrid')
+    total = sum(occ_df['Total'])
+    ax = sns.barplot(x=occ_df['Total'], y=occ_df['Occupation'], orient='h', color=light_orange, width=0.4)
+    ax.bar_label(ax.containers[0], fontsize=20)
+    plt.box(False)
+    ax.set_xlabel('', visible=False)
+    ax.tick_params(axis='y', which='major', labelsize=23)
+    ax.tick_params(axis='x', which='major', labelsize=20)
+    ax.set_ylabel('', visible=False)
+    plt.rc('axes', labelsize=5)
+    plt.xticks(list(range(0, total-5, total // 4)), [str(x) + '%' for x in list(range(0, 80, 20))])
+    plt.savefig(f'./Visualizations/{county_name}_occupation.png', dpi=300, bbox_inches='tight')
+
+occupation('Champaign County')
+
+
+def industry(county_name):
+    industry_df = pd.read_csv('./Data/Industry_county.csv')
+    industry_df = industry_df[industry_df['NAME'] == county_name]
+    industry_df.columns = [re.sub('TotalFull-time.year-round civilian employed population 16 years and over', '', col) for col in industry_df.columns]
+    cols = ['Agriculture.forestry.fishing and hunting.and mining' ,'Construction', 'Manufacturing', 'Wholesale trade', 'Retail trade', 'Transportation and warehousing.and utilities', 'Information', 'Finance and insurance.and real estate and rental and leasing', 'Professional.scientific.and management.and administrative and waste management services', 'Educational services.and health care and social assistance', 'Arts.entertainment.and recreation.and accommodation and food services', 'Other services.except public administration','Public administration']
+    industry_df = industry_df[cols]
+    industry_df.columns = ['Ag, Forestry, Fishing and hunting', 'Construction', 'Manufacturing', 'WholeSale Trade', 'Retail Trade', 'Transport, warehouse and utilities', 'Information', 'Finance, Insurance and Real estate', 'Prof, mgmt and waste mgmt', 'Educational, healthcare and social services', 'Arts, entertainment, recreation, accomodation and food', 'Other service', 'Public Admin']
+    industry_df = industry_df.T.reset_index()
+    industry_df.columns = ['Industry', 'Total']
+    light_orange = (1.0, 0.8, 0.64)
+    fig, ax = plt.subplots(figsize=(15, 10))
+    sns.set_style('darkgrid')
+    total = sum(industry_df['Total'])
+    ax = sns.barplot(x=industry_df['Total'], y=industry_df['Industry'], orient='h', color=light_orange, width=0.4)
+    ax.bar_label(ax.containers[0], fontsize=20)
+    plt.box(False)
+    ax.set_xlabel('', visible=False)
+    ax.tick_params(axis='y', which='major', labelsize=15)
+    ax.tick_params(axis='x', which='major', labelsize=20)
+    ax.set_ylabel('', visible=False)
+    plt.rc('axes', labelsize=5)
+    plt.xticks(list(range(0, total//2, total//10)), [str(x) + '%' for x in list(range(0, 50, 10))])
+    plt.savefig(f'./Visualizations/{county_name}_industry.png', dpi=300, bbox_inches='tight')
+
+industry('Champaign County')
+
+
 
 def vehicle_count(county_name):
     vehicle_df = pd.read_csv('./Data/Vehicle_count_county.csv')
@@ -34,8 +91,9 @@ def vehicle_count(county_name):
     ax.tick_params(axis='x', which='major', labelsize=20)
     ax.set_ylabel('', visible=False)
     plt.rc('axes', labelsize=5)
-    plt.xticks(list(range(0, total, total//5)), [str(x) + '%' for x in list(range(0, 100, 20))])
+    plt.xticks(list(range(0, total-20, total//4)), [str(x) + '%' for x in list(range(0, 80, 20))])
     plt.savefig(f'./Visualizations/{county_name}_vehcilecount.png', dpi=300, bbox_inches='tight')
+
 
 def language(county_name):
     lang_df = pd.read_csv('./Data/Languages_county.csv')
@@ -67,7 +125,7 @@ def language(county_name):
     ax.tick_params(axis='x', which='major', labelsize=20)
     ax.set_ylabel('', visible=False)
     plt.rc('axes', labelsize=5)
-    plt.xticks(list(range(0, total-3, total//5)), [str(x) + '%' for x in list(range(0, 100, 20))])
+    plt.xticks(list(range(0, total, total//5)), [str(x) + '%' for x in list(range(0, 100, 20))])
     plt.savefig(f'./Visualizations/{county_name}_languageimage.png', dpi=300, bbox_inches='tight')
 
 def clean_population_cols(df):

@@ -4,7 +4,10 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.colors import black, gray
 from Table_Visualizer import housing_table, housing_affordability, housing_rent
 import plotly.graph_objects as go
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
 
+styles = getSampleStyleSheet()
 
 def render_mpl_table(data, name,col_width=3.0, row_height=0.625, font_size=14,
                      header_color='#40466e', row_colors=['#f1f1f2', 'w'], edge_color='w',
@@ -90,7 +93,50 @@ c.line(325,650, 325, 110)
 
 c.showPage()
 
-c.drawImage('./Visualizations/Champaign County_vehcilecount.png', 35, 215, 250, 90)
+c.drawImage('./Visualizations/Champaign County_vehcilecount.png', 35, 280, 250, 110)
+c.drawImage('./Visualizations/Champaign County_languageimage.png', 35, 420, 250, 120)
+c.drawImage('./Visualizations/Champaign County_occupation.png', 325, 600, 250, 120)
+c.drawImage('./Visualizations/Champaign County_industry.png', 325, 325, 260, 250)
+c.drawImage('Extension Logo.png', 325, 80, 120, 50)
+c.drawImage('logo 2.png', 460, 80, 120, 50)
+
+c.drawString(325, 740, f"{'6. Employment':<45}")
+c.drawString(50, 740, f"{'4. Social Charateristics':<45}")
+c.drawString(50, 405, f"{'5. Access':<45}")
+c.drawString(325, 295, f"{'ABOUT':<45}")
+
+c.setFont('Helvetica',  10)
+c.setFillColor(gray)
+c.drawString(50, 725, f"{'4.1 Educational Attainment':<45}")
+c.drawString(50, 540, f"{'4.2 Languages spoken at home':<45}")
+c.drawString(50, 393, f"{'5.1 Number of vehicles in a household':<45}")
+c.drawString(50, 270, f"{'5.2 Mode of travel to work':<45}")
+c.drawString(50, 170, f"{'5.3 Inflow/Outflow Job Counts':<45}")
+c.drawString(325, 725, f"{'6.1 Number of people employed by occupation':<45}")
+c.drawString(325, 590, f"{'6.2 Number of people employed by industry':<45}")
+c.drawString(325, 280, f"Data prepared by the Illinois State Census Data Center" )
+c.drawString(325, 265, f"       Data Sources – ACS 2021 5 Year Tables – [1 to 5.2]")
+c.drawString(325, 250, f"       LEHD, US Census, 2019 – [5.3]")
+c.drawString(325, 235, f"       Bureau of Labor Statistics – [6]")
+c.setFont('Helvetica',  10)
+c.drawString(335, 210, f"University of Illinois, US Department of Agriculture,")
+c.drawString(335, 200, f"Local Extension Councils Cooperating. University of")
+c.drawString(335, 190, f"Illinois provides equal opportunities in programs and")
+c.drawString(335, 180, f"employment. If you experience any problems accessing")
+c.drawString(335, 170, f"or receiving this content, or have feedback on the")
+c.drawString(335, 160, f"design, please email, extension@illinois.edu.")
+
+
+
+c.drawString(325, 590, f"{'6.2 Number of people employed by industry':<45}")
+
+c.setFont('Helvetica',  6)
+c.drawString(50, 775, f"{'Illinois State Census Data Center'}")
+c.drawString(470, 775, f"{'County Profile Reports'}")
+c.setFillColor(gray)
+#c.line(50,650, 600, 650)
+c.line(310,750, 310, 70)
+c.line(310,310, 580, 310)
 
 c.save()
 
