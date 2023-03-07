@@ -1,7 +1,6 @@
 import plotly.figure_factory as ff
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from PIL import Image
 from reportlab.lib.colors import black, gray
 from Table_Visualizer import housing_table, housing_affordability, housing_rent
 import plotly.graph_objects as go
@@ -24,22 +23,18 @@ def render_mpl_table(data, name,col_width=3.0, row_height=0.625, font_size=14,
     fig.update_layout(autosize=True,width=750,height=450,margin = dict(l=0, r=90, t=30, b=50), font_size= 16, font_color = 'black', )
     fig.write_image(f'./Tables/{name}.png')
 
-
+##Creating Tables
 df = housing_table('Champaign County')
 render_mpl_table(df, 'Aff', header_columns=0, col_width=2.0)
-
 df1 = housing_affordability('Champaign County')
 render_mpl_table(df1, 'Val', header_columns=0, col_width=2.0)
-
 df2 = housing_rent('Champaign County')
 render_mpl_table(df2, 'Rent', header_columns=0, col_width=2.0)
-
-image = 'PopPyramid2.png'
 
 # Create a PDF canvas
 c = canvas.Canvas("sample_report.pdf", pagesize=letter)
 
-# Draw first image
+##Pasting visualizations onto report
 c.drawImage('./County_images/CHAMPAIGN.png', 385, 650, 220, 115)
 c.drawImage('./Visualizations/Ethnicimage.png', 35, 155, 220, 65)
 c.drawImage('./Visualizations/Raceimage.png', 20, 260, 260, 150)
@@ -50,8 +45,9 @@ c.drawImage('./Tables/Val.png', 350, 105, 280, 180)
 c.drawImage('./Visualizations/incomeimage.png', 350, 445, 300, 180)
 
 
+
 c.setFont('Helvetica',  8)
-d,m = 40,10
+d,m = 45,10
 c.drawString(50, 703-d+m, f"{'Individual Poverty Rate:':<40}  {'19.1%':<39}  {'12.0%':<10}")
 c.drawString(50, 712-d+m, f"{'Median Household Income:':<35}  {'59,936':<39}  {'57,915':<10}")
 c.drawString(50, 721-d+m, f"{'Median Age:':<45}  {'33':<42}  {'39':<10}")
@@ -91,6 +87,10 @@ c.drawString(470, 775, f"{'County Profile Reports'}")
 c.setFillColor(gray)
 #c.line(50,650, 600, 650)
 c.line(325,650, 325, 110)
+
+c.showPage()
+
+c.drawImage('./Visualizations/Champaign County_vehcilecount.png', 35, 215, 250, 90)
 
 c.save()
 

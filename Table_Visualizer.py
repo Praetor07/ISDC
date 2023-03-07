@@ -7,6 +7,69 @@ import matplotlib.pyplot as plt
 pd.set_option('display.max_rows', None, 'display.max_columns', None)
 
 
+def education_att(county_name):
+    edu_df = pd.read_csv('./Data/Educational_Attainment_county.csv')
+    edu_df = edu_df[edu_df['NAME'] == county_name]
+    #Categories: Less than high school; High school graduate; Some college no degree, associate degree; Bachelors; Graduate professional
+    cols = [col for col in edu_df if re.search('EstimateTotalAGE BY EDUCAL ATTAINMENT', col)]
+    edu_df = edu_df[cols]
+    finals_cols = [re.sub('EstimateTotalAGE BY EDUCAL ATTAINMENT', '', col) for col in edu_df ]
+    col_dict = {'Less than high school' : ['Less than high school graduate', 'Less than 9th grade', '9th to 12th grade.no diploma']}
+    #for col in finals_cols:
+
+def vehicle_count(county_name):
+    vehicle_df = pd.read_csv('./Data/Vehicle_count_county.csv')
+    vehicle_df = vehicle_df[vehicle_df['NAME'] == county_name]
+    vehicle_df = vehicle_df[vehicle_df.columns[2:7]].T.reset_index()
+    vehicle_df.columns = ['Vehicle_count', 'Total']
+    light_orange = (1.0, 0.8, 0.64)
+    fig, ax = plt.subplots(figsize=(15, 10))
+    sns.set_style('darkgrid')
+    total = sum(vehicle_df['Total'])
+    ax = sns.barplot(x=vehicle_df['Total'], y=vehicle_df['Vehicle_count'], orient='h', color=light_orange, width=0.4)
+    ax.bar_label(ax.containers[0], fontsize=20)
+    plt.box(False)
+    ax.set_xlabel('', visible=False)
+    ax.tick_params(axis='y', which='major', labelsize=23)
+    ax.tick_params(axis='x', which='major', labelsize=20)
+    ax.set_ylabel('', visible=False)
+    plt.rc('axes', labelsize=5)
+    plt.xticks(list(range(0, total, total//5)), [str(x) + '%' for x in list(range(0, 100, 20))])
+    plt.savefig(f'./Visualizations/{county_name}_vehcilecount.png', dpi=300, bbox_inches='tight')
+
+def language(county_name):
+    lang_df = pd.read_csv('./Data/Languages_county.csv')
+    lang_df = lang_df[lang_df['NAME'] == county_name]
+    languages_dict = {}
+    languages = ['Speak only English', 'Spanish', 'Indo-European languages', 'Asian and Pacific Island languages', 'Other languages']
+    lang_regex = '|'.join(languages)
+    for col in lang_df.columns:
+        if re.search('EstimateTotalPopulation', col):
+            if re.search(lang_regex,col):
+                l = col[re.search(lang_regex,col).start():re.search(lang_regex,col).end()]
+                if l not in languages_dict:
+                    languages_dict[l] = []
+                languages_dict[l].append(col)
+    for lang in languages_dict:
+        lang_df[lang] = lang_df[languages_dict[lang]].sum(axis=1)
+        lang_df.drop(columns = lang_df[languages_dict[lang]], inplace=True, axis=1)
+    lang_df = lang_df[lang_df.columns[-5:]].T.reset_index()
+    lang_df.columns = ['Language', 'Total']
+    total = sum(lang_df['Total'])
+    light_orange = (1.0, 0.8, 0.64)
+    fig, ax = plt.subplots(figsize=(15, 10))
+    sns.set_style('darkgrid')
+    ax = sns.barplot(x=lang_df['Total'], y=lang_df['Language'], orient='h', color=light_orange, width=0.4)
+    ax.bar_label(ax.containers[0], fontsize=20)
+    plt.box(False)
+    ax.set_xlabel('', visible=False)
+    ax.tick_params(axis='y', which='major', labelsize=23)
+    ax.tick_params(axis='x', which='major', labelsize=20)
+    ax.set_ylabel('', visible=False)
+    plt.rc('axes', labelsize=5)
+    plt.xticks(list(range(0, total-3, total//5)), [str(x) + '%' for x in list(range(0, 100, 20))])
+    plt.savefig(f'./Visualizations/{county_name}_languageimage.png', dpi=300, bbox_inches='tight')
+
 def clean_population_cols(df):
     df['0 to 9 years'] = df['Under 5 years'] + df['5 to 9 years']
     df['10 to 19 years'] = df['10 to 14 years'] + df['15 to 19 years']
