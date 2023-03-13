@@ -1,22 +1,47 @@
+import pandas as pd
 import plotly.figure_factory as ff
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.colors import black, gray
-from Table_Visualizer import housing_table, housing_affordability, housing_rent
+from Table_Visualizer import housing_table, housing_affordability, housing_rent, commute
 import plotly.graph_objects as go
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import inch
-
+import re
 styles = getSampleStyleSheet()
+
+
+def summary(county_name):
+    pop_df = pd.read_csv('./Data/Population_by_age_county.csv')
+    pop_df_state = pd.read_csv('./Data/Population_by_age_state.csv')
+    pop_df = pop_df[pop_df['NAME'] == county_name]
+    income_df = pd.read_csv('./Data/Household_income_county.csv')
+    income_df_state = pd.read_csv('./Data/Household_income_state.csv')
+    median_income = 'HouseholdsMedian income (dollars)'
+    income_df = income_df[income_df['NAME'] == county_name]
+    median_age = 'TotalTotal populationSUMMARY INDICATORSMedian age (years)'
+    total_pop = 'TotalTotal population'
+    median_age_value = round(pop_df[median_age].tolist()[0],0)
+    median_age_value_state = round(pop_df_state[median_age].tolist()[0],0)
+    total_pop_value = pop_df[total_pop].tolist()[0]
+    total_pop_value_state = pop_df_state[total_pop].tolist()[0]
+    median_income_value = income_df[median_income].tolist()[0]
+    median_income_value_state = income_df_state[median_income].tolist()[0]
+    print(median_age_value, total_pop_value, median_income_value)
+    print(median_age_value_state, total_pop_value_state, median_income_value_state)
+
+summary('Champaign County')
+
+
 
 def render_mpl_table(data, name,col_width=3.0, row_height=0.625, font_size=14,
                      header_color='#40466e', row_colors=['#f1f1f2', 'w'], edge_color='w',
                      bbox=[0, 0, 0.8, 0.8], header_columns=0,
                      ax=None, **kwargs):
     #colorscale = [[0, '#ffffff']]
+    header = 'darkslategray' if name != 'commute' else 'white'
     fig = go.Figure(data=[go.Table(
         header=dict(values=list(data.columns),
-                    line_color='darkslategray',
+                    line_color=header,
                     fill_color='white',
                     align='left'),
         cells=dict(values=[data[x] for x in data.columns],
@@ -33,20 +58,20 @@ df1 = housing_affordability('Champaign County')
 render_mpl_table(df1, 'Val', header_columns=0, col_width=2.0)
 df2 = housing_rent('Champaign County')
 render_mpl_table(df2, 'Rent', header_columns=0, col_width=2.0)
+df3 = commute('Champaign County')
+render_mpl_table(df3, 'commute', header_columns=0, col_width=2.0)
 
-# Create a PDF canvas
-c = canvas.Canvas("sample_report.pdf", pagesize=letter)
+c = canvas.Canvas("sample_report1.pdf", pagesize=letter)
 
 ##Pasting visualizations onto report
 c.drawImage('./County_images/CHAMPAIGN.png', 385, 650, 220, 115)
-c.drawImage('./Visualizations/Ethnicimage.png', 35, 155, 220, 65)
-c.drawImage('./Visualizations/Raceimage.png', 20, 260, 260, 150)
-c.drawImage('./Visualizations/PopPyramid2.png', 50, 415, 280, 230)
-c.drawImage('./Tables/Aff.png', 350, 235, 280, 180)
-c.drawImage('./Tables/Rent.png', 350, 170, 280, 180)
-c.drawImage('./Tables/Val.png', 350, 105, 280, 180)
-c.drawImage('./Visualizations/incomeimage.png', 350, 445, 300, 180)
-
+c.drawImage('./Visualizations/Champaign County_Ethnicimage.png', 35, 125, 220, 65)
+c.drawImage('./Visualizations/Champaign County_Raceimage.png', 20, 220, 250, 150)
+c.drawImage('./Visualizations/Champaign County_PopPyramid2.png', 10, 395, 350, 240)
+c.drawImage('./Tables/Aff.png', 350, 225, 280, 180)
+c.drawImage('./Tables/Rent.png', 350, 160, 280, 180)
+c.drawImage('./Tables/Val.png', 350, 95, 280, 180)
+c.drawImage('./Visualizations/Champaign County_incomeimage.png', 350, 435, 300, 180)
 
 
 c.setFont('Helvetica',  8)
@@ -68,75 +93,72 @@ c.drawString(50, 784-d+m, f"{'Champaign County':<45}")
 
 c.setFont('Helvetica',  13)
 c.drawString(50, 640, f"{'1. Demographics':<45}")
-c.setFont('Helvetica',  10)
+c.setFont('Helvetica',  11)
 c.setFillColor(gray)
 c.drawString(50, 623, f"{'1.1 Age-Sex Pyramid':<45}")
-c.drawString(50, 420, f"{'1.2 Population by Race':<45}")
-c.drawString(50, 225, f"{'1.3 Population by Ethnicity':<45}")
+c.drawString(50, 380, f"{'1.2 Population by Race':<45}")
+c.drawString(50, 200, f"{'1.3 Population by Ethnicity':<45}")
 c.setFont('Helvetica',  13)
 c.setFillColor(black)
 
 c.drawString(350, 640, f"{'2. Income':<45}")
-c.drawString(350, 435, f"{'3. Housing':<45}")
+c.drawString(350, 425, f"{'3. Housing':<45}")
 c.setFont('Helvetica',  10)
 c.setFillColor(gray)
-c.drawString(350, 418, f"{'3.1 Housing Occupancy Status':<45}")
-c.drawString(350, 350, f"{'3.2 Housing Tenure':<45}")
-c.drawString(350, 290, f"{'3.3 Financial Characteristics of Housing units':<45}")
+c.drawString(350, 408, f"{'3.1 Housing Occupancy Status':<45}")
+c.drawString(350, 340, f"{'3.2 Housing Tenure':<45}")
+c.drawString(350, 280, f"{'3.3 Financial Characteristics of Housing units':<45}")
 c.drawString(350, 625, f"{'2.1 Household Income':<45}")
 c.setFont('Helvetica',  6)
 c.drawString(50, 775, f"{'Illinois State Census Data Center'}")
 c.drawString(470, 775, f"{'County Profile Reports'}")
 c.setFillColor(gray)
-#c.line(50,650, 600, 650)
 c.line(325,650, 325, 110)
 
 c.showPage()
 
-c.drawImage('./Visualizations/Champaign County_vehcilecount.png', 35, 280, 250, 110)
-c.drawImage('./Visualizations/Champaign County_languageimage.png', 35, 420, 250, 120)
+c.drawImage('./Visualizations/Champaign County_vehcilecount.png', 35, 285, 250, 110)
+c.drawImage('./Visualizations/Champaign County_languageimage.png', 35, 440, 250, 120)
 c.drawImage('./Visualizations/Champaign County_occupation.png', 325, 600, 250, 120)
-c.drawImage('./Visualizations/Champaign County_industry.png', 325, 325, 260, 250)
-c.drawImage('Extension Logo.png', 325, 80, 120, 50)
-c.drawImage('logo 2.png', 460, 80, 120, 50)
+c.drawImage('./Visualizations/Champaign County_industry.png', 325, 295, 230, 290)
+c.drawImage('./Visualizations/Champaign County_education.png', 35, 595, 250, 120)
+c.drawImage('./Visualizations/Champaign County_vehicle.png', 35, 145, 250, 120)
+c.drawImage('./Tables/commute.png', 35,-55, 300, 180)
+c.drawImage('Extension Logo.png', 325, 100, 150, 60)
+c.drawImage('logo 2.png', 325, 50, 130, 50)
 
 c.drawString(325, 740, f"{'6. Employment':<45}")
 c.drawString(50, 740, f"{'4. Social Charateristics':<45}")
-c.drawString(50, 405, f"{'5. Access':<45}")
-c.drawString(325, 295, f"{'ABOUT':<45}")
+c.drawString(50, 425, f"{'5. Access':<45}")
+c.drawString(325, 270, f"{'ABOUT':<45}")
 
 c.setFont('Helvetica',  10)
 c.setFillColor(gray)
 c.drawString(50, 725, f"{'4.1 Educational Attainment':<45}")
-c.drawString(50, 540, f"{'4.2 Languages spoken at home':<45}")
-c.drawString(50, 393, f"{'5.1 Number of vehicles in a household':<45}")
+c.drawString(50, 570, f"{'4.2 Languages spoken at home':<45}")
+c.drawString(50, 405, f"{'5.1 Number of vehicles in a household':<45}")
 c.drawString(50, 270, f"{'5.2 Mode of travel to work':<45}")
-c.drawString(50, 170, f"{'5.3 Inflow/Outflow Job Counts':<45}")
+c.drawString(50, 120, f"{'5.3 Inflow/Outflow Job Counts':<45}")
 c.drawString(325, 725, f"{'6.1 Number of people employed by occupation':<45}")
 c.drawString(325, 590, f"{'6.2 Number of people employed by industry':<45}")
-c.drawString(325, 280, f"Data prepared by the Illinois State Census Data Center" )
-c.drawString(325, 265, f"       Data Sources – ACS 2021 5 Year Tables – [1 to 5.2]")
-c.drawString(325, 250, f"       LEHD, US Census, 2019 – [5.3]")
-c.drawString(325, 235, f"       Bureau of Labor Statistics – [6]")
+c.drawString(325, 260, f"Data prepared by the Illinois State Census Data Center" )
+c.drawString(325, 250, f"       Data Sources – ACS 2021 5 Year Tables – [1 to 5.2]")
+c.drawString(325, 240, f"       LEHD, US Census, 2019 – [5.3]")
+c.drawString(325, 230, f"       Bureau of Labor Statistics – [6]")
 c.setFont('Helvetica',  10)
-c.drawString(335, 210, f"University of Illinois, US Department of Agriculture,")
-c.drawString(335, 200, f"Local Extension Councils Cooperating. University of")
-c.drawString(335, 190, f"Illinois provides equal opportunities in programs and")
-c.drawString(335, 180, f"employment. If you experience any problems accessing")
-c.drawString(335, 170, f"or receiving this content, or have feedback on the")
-c.drawString(335, 160, f"design, please email, extension@illinois.edu.")
-
-
-
-c.drawString(325, 590, f"{'6.2 Number of people employed by industry':<45}")
+c.drawString(335, 215, f"University of Illinois, US Department of Agriculture,")
+c.drawString(335, 205, f"Local Extension Councils Cooperating. University of")
+c.drawString(335, 195, f"Illinois provides equal opportunities in programs and")
+c.drawString(335, 185, f"employment. If you experience any problems accessing")
+c.drawString(335, 175, f"or receiving this content, or have feedback on the")
+c.drawString(335, 165, f"design, please email, extension@illinois.edu.")
 
 c.setFont('Helvetica',  6)
 c.drawString(50, 775, f"{'Illinois State Census Data Center'}")
 c.drawString(470, 775, f"{'County Profile Reports'}")
 c.setFillColor(gray)
-#c.line(50,650, 600, 650)
-c.line(310,750, 310, 70)
-c.line(310,310, 580, 310)
+c.line(310, 750, 310, 70)
+c.line(310, 285, 580, 285)
 
 c.save()
 

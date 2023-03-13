@@ -127,7 +127,7 @@ def clean_population_frame(df: pd.DataFrame) -> pd.DataFrame:
 if __name__ == '__main__':
     rep = {'"': '', '[': '', ']': '', ', ': '.'}
     rep_cols = {'"': '', '[': '', ']': ''}
-    table_dict = {'S1501':'Educational_attainment', 'S1601': 'Languages', 'B08':'Vehicles', 'S2401': 'Occupation', 'S2404' : 'Industry' ,'S0101': 'Population_by_age', 'B02001' : 'Population_by_race', 'B03003' : 'Population_by_ethnicity', 'S1901' : 'Household_income' , 'S1701' : 'Poverty_Status', 'S1501' : 'Educational_Attainment', 'C24050' : 'Major_occupations' ,'B08201' : 'Vehicle_count','B25002':'Housing_Tenure', 'B25003' : 'Housing_rent','S2506' :'Housing_affordability', 'DP04' : 'Housing_affordability_1', 'B25077' : 'Housing_affordability_2'}
+    table_dict = {'S1501':'Educational_attainment', 'S1601': 'Languages', 'C08301':'Vehicles', 'S2401': 'Occupation', 'S2404' : 'Industry' ,'S0101': 'Population_by_age', 'B02001' : 'Population_by_race', 'B03003' : 'Population_by_ethnicity', 'S1901' : 'Household_income' , 'S1701' : 'Poverty_Status', 'S1501' : 'Educational_Attainment', 'C24050' : 'Major_occupations' ,'B08201' : 'Vehicle_count','B25002':'Housing_Tenure', 'B25003' : 'Housing_rent','S2506' :'Housing_affordability', 'DP04' : 'Housing_affordability_1', 'B25077' : 'Housing_affordability_2'}
     rep = dict((re.escape(k), v) for k, v in rep.items())
     pattern = re.compile("|".join(rep.keys()))
     pattern_cols = re.compile("|".join(rep_cols.keys()))
@@ -143,11 +143,12 @@ if __name__ == '__main__':
             state_link = f'https://api.census.gov/data/2021/acs/acs5{table_type}?get=group({table})&for=state:17'
             county_link = f'https://api.census.gov/data/2021/acs/acs5{table_type}?get=group({table})&for=county:*&in=state:17'
             tract_link = f'https://api.census.gov/data/2021/acs/acs5{table_type}?get=group({table})&for=tract:*&in=state:17'
-            links_dict = {'tract': tract_link, 'state': state_link, 'county': county_link}
+            links_dict = {'tract': tract_link, 'county': county_link, 'state': state_link}
             for link in links_dict:
                 printing_df = request_data(links_dict[link], table_type)
                 if len(printing_df) < 10 and link != "state":
                     print(f"{link} for {table} is empty")
+                    continue
                 if table not in ['B01001']:
                     printing_df.columns = clean_column_names(printing_df.columns, table)
                 if table in ['B01001']:

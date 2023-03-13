@@ -6,6 +6,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 pd.set_option('display.max_rows', None, 'display.max_columns', None)
 
+font = "Times New Roman"
+
 
 def education_att(county_name):
     edu_df = pd.read_csv('./Data/Educational_Attainment_county.csv')
@@ -13,10 +15,77 @@ def education_att(county_name):
     #Categories: Less than high school; High school graduate; Some college no degree, associate degree; Bachelors; Graduate professional
     cols = [col for col in edu_df if re.search('EstimateTotalAGE BY EDUCAL ATTAINMENT', col)]
     edu_df = edu_df[cols]
-    finals_cols = [re.sub('EstimateTotalAGE BY EDUCAL ATTAINMENT', '', col) for col in edu_df ]
-    col_dict = {'Less than high school' : ['Less than high school graduate', 'Less than 9th grade', '9th to 12th grade.no diploma']}
-    for col in finals_cols:
-        print(col)
+    cols = [col for col in edu_df if re.search('Population 25 years and over', col)]
+    edu_df = edu_df[cols]
+    finals_cols = [re.sub('EstimateTotalAGE BY EDUCAL ATTAINMENT|Population 25 years and over', '', col) for col in edu_df ]
+    edu_df.columns = finals_cols
+    edu_df = edu_df[edu_df.columns[1:8]]
+    edu_df['Less than High School'] = edu_df['Less than 9th grade'] + edu_df['9th to 12th grade.no diploma']
+    edu_df.drop(edu_df.columns[:2],inplace = True,axis =1)
+    edu_df.columns = ['High School Graduate', 'Some college, no degree', 'Associate\'s degree','Bachelor\'s Degree', 'Graduate or Professional degree', 'Less than High school']
+    edu_df = edu_df[['Less than High school', 'High School Graduate', 'Some college, no degree', 'Associate\'s degree','Bachelor\'s Degree', 'Graduate or Professional degree']]
+    edu_df = edu_df.T.reset_index()
+    edu_df.columns = ['Edu_level','Total']
+    light_orange = (1.0, 0.8, 0.64)
+    fig, ax = plt.subplots(figsize=(15, 10))
+    sns.set_style('darkgrid')
+    total = sum(edu_df['Total'])
+    ax = sns.barplot(x=edu_df['Total'], y=edu_df['Edu_level'], orient='h', color=light_orange, width=0.6)
+    ax.bar_label(ax.containers[0], fontsize=40)
+    plt.box(False)
+    ax.set_xlabel('', visible=False)
+    ax.tick_params(axis='y', which='major', labelsize=50)
+    ax.tick_params(axis='x', which='major', labelsize=40)
+    plt.yticks(fontname=font)
+    ax.set_ylabel('', visible=False)
+    plt.rc('axes', labelsize=5)
+    plt.xticks(list(range(0, total - 5, total // 4)), [str(x) + '%' for x in list(range(0, 80, 20))])
+    plt.savefig(f'./Visualizations/{county_name}_education.png', dpi=300, bbox_inches='tight')
+
+education_att('Champaign County')
+
+def commute(county_name):
+    county_name = county_name + ", Illinois"
+    commute_df = pd.read_csv('./Data/ori_des.csv')
+    incoming_df = commute_df[(commute_df['w_county_name'] == county_name) & (commute_df['h_county_name'] != county_name)]
+    outgoing_df = commute_df[(commute_df['w_county_name'] != county_name) & (commute_df['h_county_name'] == county_name)]
+    inplace_df = commute_df[(commute_df['w_county_name'] == county_name) & (commute_df['h_county_name'] == county_name)]
+    metrics =[[incoming_df['S000'].sum(), outgoing_df['S000'].sum(), inplace_df['S000'].sum()]]
+    columns = ['Live outside county, commute in for work', 'Live and work in county', 'Live inside county, commute outside for work']
+    #columns = [re.sub("(.{28})", "\\1\n", label, 0, re.DOTALL) for label in columns]
+    com_df = pd.DataFrame(metrics, columns=columns)
+    return com_df
+
+commute('Champaign County')
+
+def mode_travel(county_name):
+    travel_df = pd.read_csv('./Data/Vehicles_county.csv')
+    travel_df = travel_df[travel_df['NAME'] == county_name]
+    travel_df['Taxicab,motorcyle,bicycle or other means'] = travel_df['Taxicab'] + travel_df['Motorcycle'] + travel_df['Bicycle'] + travel_df['Other means']
+    travel_df = travel_df[['Car.truck.or van', 'Public transportation (excluding taxicab)', 'Walked', 'Taxicab,motorcyle,bicycle or other means']]
+    travel_df.columns =['Car,truck,or van', 'Public transportation', 'Walked', 'Taxicab,motorcyle,bicycle or other means']
+    travel_df = travel_df.T.reset_index()
+    travel_df.columns = ['Vehicle', 'Total']
+    light_orange = (1.0, 0.8, 0.64)
+    fig, ax = plt.subplots(figsize=(15, 10))
+    sns.set_style('darkgrid')
+    total = sum(travel_df['Total'])
+    ax = sns.barplot(x=travel_df['Total'], y=travel_df['Vehicle'], orient='h', color=light_orange, width=0.6)
+    ax.bar_label(ax.containers[0], fontsize=40)
+    plt.box(False)
+    ax.set_xlabel('', visible=False)
+    ax.tick_params(axis='y', which='major', labelsize=50)
+    ax.tick_params(axis='x', which='major', labelsize=40)
+    xlabels_new = [re.sub("(.{25})", "\\1\n", label, 0, re.DOTALL) for label in travel_df['Vehicle']]
+    plt.yticks(range(4), xlabels_new, fontname=font)
+    plt.yticks(fontname=font)
+    ax.set_ylabel('', visible=False)
+    plt.rc('axes', labelsize=5)
+    plt.xticks(list(range(0, total - 5, total // 4)), [str(x) + '%' for x in list(range(0, 80, 20))])
+    plt.savefig(f'./Visualizations/{county_name}_vehicle.png', dpi=300, bbox_inches='tight')
+
+
+mode_travel('Champaign County')
 
 def occupation(county_name):
     occ_df = pd.read_csv('./Data/Occupation_county.csv')
@@ -32,12 +101,13 @@ def occupation(county_name):
     fig, ax = plt.subplots(figsize=(15, 10))
     sns.set_style('darkgrid')
     total = sum(occ_df['Total'])
-    ax = sns.barplot(x=occ_df['Total'], y=occ_df['Occupation'], orient='h', color=light_orange, width=0.4)
-    ax.bar_label(ax.containers[0], fontsize=20)
+    ax = sns.barplot(x=occ_df['Total'], y=occ_df['Occupation'], orient='h', color=light_orange, width=0.6)
+    ax.bar_label(ax.containers[0], fontsize=40)
     plt.box(False)
     ax.set_xlabel('', visible=False)
-    ax.tick_params(axis='y', which='major', labelsize=23)
-    ax.tick_params(axis='x', which='major', labelsize=20)
+    ax.tick_params(axis='y', which='major', labelsize=50)
+    ax.tick_params(axis='x', which='major', labelsize=40)
+    plt.yticks(fontname=font)
     ax.set_ylabel('', visible=False)
     plt.rc('axes', labelsize=5)
     plt.xticks(list(range(0, total-5, total // 4)), [str(x) + '%' for x in list(range(0, 80, 20))])
@@ -52,19 +122,21 @@ def industry(county_name):
     industry_df.columns = [re.sub('TotalFull-time.year-round civilian employed population 16 years and over', '', col) for col in industry_df.columns]
     cols = ['Agriculture.forestry.fishing and hunting.and mining' ,'Construction', 'Manufacturing', 'Wholesale trade', 'Retail trade', 'Transportation and warehousing.and utilities', 'Information', 'Finance and insurance.and real estate and rental and leasing', 'Professional.scientific.and management.and administrative and waste management services', 'Educational services.and health care and social assistance', 'Arts.entertainment.and recreation.and accommodation and food services', 'Other services.except public administration','Public administration']
     industry_df = industry_df[cols]
-    industry_df.columns = ['Ag, Forestry, Fishing and hunting', 'Construction', 'Manufacturing', 'WholeSale Trade', 'Retail Trade', 'Transport, warehouse and utilities', 'Information', 'Finance, Insurance and Real estate', 'Prof, mgmt and waste mgmt', 'Educational, healthcare and social services', 'Arts, entertainment, recreation, accomodation and food', 'Other service', 'Public Admin']
+    industry_df.columns = ['Ag, Forestry, Fishing and hunting', 'Construction', 'Manufacturing', 'WholeSale Trade', 'Retail Trade', 'Transport, warehouse and utilities', 'Information', 'Finance,Insurance and Real estate', 'Prof, mgmt and waste mgmt', 'Education,healthcare and social services', 'Arts, entertainment, recreation and food', 'Other service', 'Public Admin']
     industry_df = industry_df.T.reset_index()
     industry_df.columns = ['Industry', 'Total']
     light_orange = (1.0, 0.8, 0.64)
-    fig, ax = plt.subplots(figsize=(15, 10))
+    fig, ax = plt.subplots(figsize=(16, 35))
     sns.set_style('darkgrid')
     total = sum(industry_df['Total'])
-    ax = sns.barplot(x=industry_df['Total'], y=industry_df['Industry'], orient='h', color=light_orange, width=0.4)
-    ax.bar_label(ax.containers[0], fontsize=20)
+    ax = sns.barplot(x=industry_df['Total'], y=industry_df['Industry'], orient='h', color=light_orange, width=0.6)
+    ax.bar_label(ax.containers[0], fontsize=45)
     plt.box(False)
     ax.set_xlabel('', visible=False)
-    ax.tick_params(axis='y', which='major', labelsize=15)
-    ax.tick_params(axis='x', which='major', labelsize=20)
+    ax.tick_params(axis='y', which='major', labelsize=55)
+    ax.tick_params(axis='x', which='major', labelsize=35)
+    xlabels_new = [re.sub("(.{21})", "\\1\n", label, 0, re.DOTALL) for label in industry_df['Industry']]
+    plt.yticks(range(13), xlabels_new,fontname=font)
     ax.set_ylabel('', visible=False)
     plt.rc('axes', labelsize=5)
     plt.xticks(list(range(0, total//2, total//10)), [str(x) + '%' for x in list(range(0, 50, 10))])
@@ -83,18 +155,19 @@ def vehicle_count(county_name):
     fig, ax = plt.subplots(figsize=(15, 10))
     sns.set_style('darkgrid')
     total = sum(vehicle_df['Total'])
-    ax = sns.barplot(x=vehicle_df['Total'], y=vehicle_df['Vehicle_count'], orient='h', color=light_orange, width=0.4)
-    ax.bar_label(ax.containers[0], fontsize=20)
+    ax = sns.barplot(x=vehicle_df['Total'], y=vehicle_df['Vehicle_count'], orient='h', color=light_orange, width=0.6)
+    ax.bar_label(ax.containers[0], fontsize=40)
     plt.box(False)
     ax.set_xlabel('', visible=False)
-    ax.tick_params(axis='y', which='major', labelsize=23)
-    ax.tick_params(axis='x', which='major', labelsize=20)
+    ax.tick_params(axis='y', which='major', labelsize=50)
+    ax.tick_params(axis='x', which='major', labelsize=40)
+    plt.yticks(fontname=font)
     ax.set_ylabel('', visible=False)
     plt.rc('axes', labelsize=5)
     plt.xticks(list(range(0, total-20, total//4)), [str(x) + '%' for x in list(range(0, 80, 20))])
     plt.savefig(f'./Visualizations/{county_name}_vehcilecount.png', dpi=300, bbox_inches='tight')
 
-
+vehicle_count('Champaign County')
 def language(county_name):
     lang_df = pd.read_csv('./Data/Languages_county.csv')
     lang_df = lang_df[lang_df['NAME'] == county_name]
@@ -117,17 +190,19 @@ def language(county_name):
     light_orange = (1.0, 0.8, 0.64)
     fig, ax = plt.subplots(figsize=(15, 10))
     sns.set_style('darkgrid')
-    ax = sns.barplot(x=lang_df['Total'], y=lang_df['Language'], orient='h', color=light_orange, width=0.4)
-    ax.bar_label(ax.containers[0], fontsize=20)
+    ax = sns.barplot(x=lang_df['Total'], y=lang_df['Language'], orient='h', color=light_orange, width=0.6)
+    ax.bar_label(ax.containers[0], fontsize=40)
     plt.box(False)
     ax.set_xlabel('', visible=False)
-    ax.tick_params(axis='y', which='major', labelsize=23)
-    ax.tick_params(axis='x', which='major', labelsize=20)
+    ax.tick_params(axis='y', which='major', labelsize=50)
+    ax.tick_params(axis='x', which='major', labelsize=40)
+    plt.yticks(fontname=font)
     ax.set_ylabel('', visible=False)
     plt.rc('axes', labelsize=5)
-    plt.xticks(list(range(0, total, total//5)), [str(x) + '%' for x in list(range(0, 100, 20))])
+    plt.xticks(list(range(0, total-5, total//5)), [str(x) + '%' for x in list(range(0, 100, 20))])
     plt.savefig(f'./Visualizations/{county_name}_languageimage.png', dpi=300, bbox_inches='tight')
 
+language('Champaign County')
 def clean_population_cols(df):
     df['0 to 9 years'] = df['Under 5 years'] + df['5 to 9 years']
     df['10 to 19 years'] = df['10 to 14 years'] + df['15 to 19 years']
@@ -172,25 +247,27 @@ def population_pyramid(county_name):
     x.columns = ['Age','Male', 'Female']
     x.drop([0],axis=0, inplace=True)
     age_order = list(x['Age'].unique()[::-1])
-    fig, ax = plt.subplots(figsize=(20,20))
+    fig, ax = plt.subplots(figsize=(45,20))
     x['Male'] = x['Male']*-1
     blue= (0.67,  0.75, 0.90)
     light_orange = (1.0, 0.8, 0.64)
-    ax1 = sns.barplot(x='Male', y='Age', data=x, order=age_order, color=blue, lw =0, width=0.4)
-    sns.barplot(x='Female', y='Age', data=x, order=age_order, color=light_orange, lw =0, width=0.4)
-    ax.tick_params(axis='y', which='major', labelsize=24)
-    ax.tick_params(axis='x', which='major', labelsize=24)
+    ax1 = sns.barplot(x='Male', y='Age', data=x, order=age_order, color=blue, lw =0, width=0.6)
+    sns.barplot(x='Female', y='Age', data=x, order=age_order, color=light_orange, lw =0, width=0.6)
+    ax.tick_params(axis='y', which='major', labelsize=55)
+    ax.tick_params(axis='x', which='major', labelsize=50)
+    plt.yticks(fontname=font)
     plt.xticks(list(range(-25000,25000,5000)), [str(i) + '%' for i in range(-25,25,5)])
     ax.set_xlabel('', visible=False)
     plt.box(False)
     colors = {'Male': blue, 'Female':  light_orange}
     labels = list(colors.keys())
     handles = [plt.Rectangle((0, 0), 1, 1, color=colors[label]) for label in labels]
-    plt.legend(handles, labels, fontsize=20)
+    plt.legend(handles, labels, fontsize=50)
     # set the chart title
     # show the chart
     plt.savefig(f'./Visualizations/{county_name}_PopPyramid2.png')
 
+population_pyramid('Champaign County')
 
 def housing_rent(county_name):
     rent_df = pd.read_csv('./Data/Housing_rent_county.csv')
@@ -211,7 +288,7 @@ def housing_income(county_name):
     col_list = []
     for c in income_df.columns:
         c = c.replace('|', ',')
-        c = c.replace('HouseholdsTotal','')
+        c = c.replace('HouseholdsTotal', '')
         col_list.append(c)
     income_df.columns = col_list
     income_df = income_df.T.reset_index()
@@ -220,16 +297,18 @@ def housing_income(county_name):
     fig, ax = plt.subplots(figsize=(15, 10))
     sns.set_style('darkgrid')
     ax = sns.barplot(x=income_df['percent'], y=income_df['income'], orient='h', color=light_orange, width=0.4)
-    ax.bar_label(ax.containers[0], fontsize=20)
+    ax.bar_label(ax.containers[0], fontsize=25)
     plt.box(False)
     ax.set_xlabel('', visible=False)
-    ax.tick_params(axis='y', which='major', labelsize=23)
-    ax.tick_params(axis='x', which='major', labelsize=20)
+    ax.tick_params(axis='y', which='major', labelsize=30)
+    ax.tick_params(axis='x', which='major', labelsize=30)
+    plt.yticks(fontname=font)
     ax.set_ylabel('', visible=False)
     plt.rc('axes', labelsize=5)
     plt.xticks(list(range(0, 40, 10)), [str(x) + '%' for x in list(range(0, 40, 10))])
     plt.savefig(f'./Visualizations/{county_name}_incomeimage.png', dpi=300, bbox_inches='tight')
 
+housing_income('Champaign County')
 
 def housing_table(county_name):
     housing_county_df = pd.read_csv('./Data/Housing_Tenure_county.csv')
@@ -306,19 +385,21 @@ def population_by_race(county_name):
     total = race_df['Total'].sum()
     race_df['Percent'] = (race_df['Total']/total)*100
     light_orange = (1.0, 0.8, 0.64)
-    fig, ax = plt.subplots(figsize=(15,10))
+    fig, ax = plt.subplots(figsize=(20,15))
     sns.set_style('darkgrid')
-    ax = sns.barplot(x=race_df['Total'], y=race_df['Race'], orient='h', color= light_orange, width=0.4)
-    ax.bar_label(ax.containers[0], fontsize=20)
+    ax = sns.barplot(x=race_df['Total'], y=race_df['Race'], orient='h', color= light_orange, width=0.6)
+    ax.bar_label(ax.containers[0], fontsize=50)
     plt.box(False)
     ax.set_xlabel('', visible=False)
-    ax.tick_params(axis='y', which='major', labelsize=23)
-    ax.tick_params(axis='x', which='major', labelsize=20)
+    ax.tick_params(axis='y', which='major', labelsize=55)
+    ax.tick_params(axis='x', which='major', labelsize=50)
+    plt.yticks(fontname=font)
     ax.set_ylabel('', visible=False)
     plt.rc('axes', labelsize=5)
     plt.xticks(list(range(0,total,int(0.2*total))),[str(x)+'%' for x in list(range(0,110,20))])
     plt.savefig(f'./Visualizations/{county_name}_Raceimage.png', dpi=300, bbox_inches='tight')
 
+population_by_race('Champaign County')
 
 def population_by_ethnicity(county_name):
     eth_df = pd.read_csv('./Data/Population_by_ethnicity_county.csv')
@@ -329,18 +410,18 @@ def population_by_ethnicity(county_name):
     total = eth_df['Total'].sum()
     eth_df['Percent'] = (eth_df['Total'] / total) * 100
     light_orange = (1.0, 0.8, 0.64)
-    fig, ax = plt.subplots(figsize=(10, 4))
-    ax = sns.barplot(x=eth_df['Total'], y=eth_df['Ethnicity'], orient='h', color=light_orange, width=0.2)
-    ax.bar_label(ax.containers[0], fontsize=20)
+    fig, ax = plt.subplots(figsize=(11, 5))
+    ax = sns.barplot(x=eth_df['Total'], y=eth_df['Ethnicity'], orient='h', color=light_orange, width=0.4)
+    ax.bar_label(ax.containers[0], fontsize=35)
     plt.box(False)
     plt.tight_layout()
     ax.set_xlabel('', visible=False)
-    ax.tick_params(axis='y', which='major', labelsize=23)
-    ax.tick_params(axis='x', which='major', labelsize=20)
+    ax.tick_params(axis='y', which='major', labelsize=40)
+    ax.tick_params(axis='x', which='major', labelsize=35)
+    plt.yticks(fontname=font)
     ax.set_ylabel('', visible=False)
     plt.rcParams['font.size'] = 12
     plt.xticks(list(range(0,total,int(0.2*total))), [str(x) + '%' for x in list(range(0, 110, 20))])
     plt.savefig(f'./Visualizations/{county_name}_Ethnicimage.png', dpi=300, bbox_inches='tight')
 
-
-
+population_by_ethnicity('Champaign County')
