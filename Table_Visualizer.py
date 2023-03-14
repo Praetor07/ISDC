@@ -253,7 +253,7 @@ def population_pyramid(county_name):
     light_orange = (1.0, 0.8, 0.64)
     ax1 = sns.barplot(x='Male', y='Age', data=x, order=age_order, color=blue, lw =0, width=0.6)
     sns.barplot(x='Female', y='Age', data=x, order=age_order, color=light_orange, lw =0, width=0.6)
-    ax.tick_params(axis='y', which='major', labelsize=55)
+    ax.tick_params(axis='y', which='major', labelsize=65)
     ax.tick_params(axis='x', which='major', labelsize=50)
     plt.yticks(fontname=font)
     plt.xticks(list(range(-25000,25000,5000)), [str(i) + '%' for i in range(-25,25,5)])
@@ -288,6 +288,7 @@ def housing_income(county_name):
     col_list = []
     for c in income_df.columns:
         c = c.replace('|', ',')
+        c = c.replace('to', ' - ')
         c = c.replace('HouseholdsTotal', '')
         col_list.append(c)
     income_df.columns = col_list
@@ -391,7 +392,7 @@ def population_by_race(county_name):
     ax.bar_label(ax.containers[0], fontsize=50)
     plt.box(False)
     ax.set_xlabel('', visible=False)
-    ax.tick_params(axis='y', which='major', labelsize=55)
+    ax.tick_params(axis='y', which='major', labelsize=65)
     ax.tick_params(axis='x', which='major', labelsize=50)
     plt.yticks(fontname=font)
     ax.set_ylabel('', visible=False)
