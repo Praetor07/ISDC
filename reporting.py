@@ -1,76 +1,98 @@
-"""
-Script to automate reports given a template for all counties in Illinois for the ISDC project.
-
-Author: Pranav Sekhar
-Date: 14th feb. 2023
-"""
-
-import fpdf
-import numpy as np
-from fpdf import FPDF
-import time
-import pandas as pd
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
+import seaborn as sns
 import matplotlib.pyplot as plt
-import dataframe_image as dfi
+from reportlab.platypus import Table, TableStyle
+from Table_Visualizer import housing_table, housing_affordability
 
-input_df = pd.read_csv('./Data/B01001_county.csv')
-input_df = input_df[['NAME', 'Estimate!!Total:!!Female:', 'Estimate!!Total:!!Male:','Estimate!!Total:!!Male:!!15 to 17 years', 'Estimate!!Total:!!Female:!!15 to 17 years']]
-totals = [np.sum(input_df['Estimate!!Total:!!Female:']), np.sum(input_df['Estimate!!Total:!!Male:'])]
-input_df.columns = ['County_name', 'Total_Females', 'Total_Males', 'Male_15_to_17_years', 'Female_15_to_17_years']
-input_df['Female_pct'] = input_df['Female_15_to_17_years']/input_df['Total_Females']
-input_df['Male_pct'] = input_df['Male_15_to_17_years']/input_df['Total_Males']
-styled_df = input_df.head(10).style.hide_index().bar(subset=['Male_pct','Female_pct'], color='green')
-dfi.export(styled_df,'./Data/Styled.png')
-y_pos = np.arange(len(['Female','Male']))
-plt.bar(y_pos, totals)
+font = "Times New Roman"
+data = {'x': ['Categorical variable 1', 'Dummy text 3', 'Filers part 4', 'Ghost dataa 2'],
+        'y': [10000, 5, 8, 12],
+        'a' : [-5,-8,-9,-10]}
 
-plt.xticks(y_pos, ['Female','Male'])
-plt.savefig('./Data/totals.png')
-
-
-class PDF(FPDF):
-    def __init__(self):
-        super().__init__()
-        self.WIDTH = 210
-        self.HEIGHT = 297
-
-    def footer(self):
-        # Page numbers in the footer
-        self.set_y(-15)
-        self.set_font('Arial', 'I', 8)
-        self.set_text_color(128)
-        self.cell(0, 10, 'Page ' + str(self.page_no()), 0, 0, 'C')
-
-    def page_body(self, images):
-        # Determine how many plots there are per page and set positions
-        # and margins accordingly
-        if len(images) == 3:
-            self.image(images[0], 15, 25, self.WIDTH - 30)
-            self.image(images[1], 15, self.WIDTH / 2 + 5, self.WIDTH - 30)
-            self.image(images[2], 15, self.WIDTH / 2 + 90, self.WIDTH - 30)
-        elif len(images) == 2:
-
-            self.image(images[0], 15, 25, self.WIDTH - 30)
-            self.image(images[1], 15, self.WIDTH / 2 + 5, self.WIDTH - 30)
-        else:
-            print(images)
-            self.image(images, 15, 25, self.WIDTH - 30)
-
-    def print_page(self, images, counter):
-        # Generates the report
-        if counter ==0 :
-            self.add_page()
-        self.page_body(images)
+total = max(data['y'])
+c = canvas.Canvas("dummy.pdf", pagesize=letter)
+canvas_width, canvas_height = c._pagesize
+print(canvas_width, canvas_height)
+fig, ax = plt.subplots(figsize=(20,15))
+blue= (0.67,  0.75, 0.90)
+light_orange = (1.0, 0.8, 0.64)
+ax = sns.barplot(x=data['y'], y=data['x'] ,orient='h', color= light_orange, width=0.6)
+ax.bar_label(ax.containers[0], labels= ['100,00','1001','909,9091,109'], fontsize=50)
+plt.box(False)
+ax.set_xlabel('', visible=False)
+ax.tick_params(axis='y', which='major', labelsize=65)
+ax.tick_params(axis='x', which='major', labelsize=50)
+plt.yticks(fontname=font)
+ax.set_ylabel('', visible=False)
+#plt.rc('axes', labelsize=5)
+plt.xticks(list(range(0,total-5,int(0.2*total))),[str(x)+'%' for x in list(range(0,100,20))])
+plt.savefig(f'./Visualizations/dummy1.png', dpi=300, bbox_inches='tight')
 
 
-pdf = PDF()
-plots_per_page = ['Data/totals.png','Data/Styled.png']
-counter =0
+fig, ax = plt.subplots(figsize=(70,15))
+ax1 = sns.barplot(x='y', y='x', data=data,color=blue, lw =0, width=0.6)
+sns.barplot(x='a', y='x', data=data,color=light_orange, lw =0, width=0.6)
+ax.tick_params(axis='y', which='major', labelsize=65)
+ax.tick_params(axis='x', which='major', labelsize=50)
+plt.yticks(fontname=font)
+plt.xticks(list(range(-30,30,6)), [str(i) + '%' for i in range(-30,30,6)])
+ax.set_xlabel('', visible=False)
+plt.box(False)
+colors = {'Y': blue, 'A':  light_orange}
+labels = list(colors.keys())
+handles = [plt.Rectangle((0, 0), 1, 1, color=colors[label]) for label in labels]
+plt.legend(handles, labels, fontsize=50)
+# set the chart title
+# show the chart
+plt.savefig(f'./Visualizations/dummy2.png')
 
-for elem in plots_per_page:
-    pdf.print_page(elem, counter)
-    counter += 1
+c.drawImage('./Visualizations/dummy1.png', 20, 625, 200,105)
+c.drawImage('./Visualizations/dummy2.png', 20, 395, 450,220)
+data = [
+    ["Name", "Age"],
+    ["John", "25"],
+    ["Jane", "30"]
+]
 
-pdf.output('PopulationReport.pdf', 'F')
+from reportlab.lib import colors
+df = housing_affordability('Champaign County')
+# Set table style
+style = [
+    ('BACKGROUND', (0, 0), (-1, 0), colors.white),
+    ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+    ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica'),
+    ('FONTSIZE', (0, 0), (-1, 0), 10),
+    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+    ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+    ('TEXTCOLOR', (-1, 0), (-1, -1), colors.grey),
+    ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
+    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+    ('FONTSIZE', (0, 1), (-1, -1), 10),
+    ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+    ('LINEBELOW', (0, 0), (-1, -2), 1, colors.black),
+    ('LINEAFTER', (0,0), (-2, -1), 1, colors.black),
+]
 
+# Create a table object
+df = df.astype(str)
+#table = [data[0]] + [map(str, row) for row in data[1:]]
+col = df.columns.tolist()
+x = df[df.columns].values.tolist()
+x_ = [map(str, p) for p in x]
+table = [col] + x_
+print(table)
+#exit()
+df_table = [list(df.iloc[[i]]) for i in range(0, len(df))]
+table_formatted = Table(table)
+table_formatted.setStyle(style)
 
+# Draw the table on the canvas
+table_formatted.wrapOn(c, inch * 5, inch * 1)
+table_formatted.drawOn(c, inch * 2, inch * 2)
+
+# Save the PDF file
+c.save()
+#c.save()
