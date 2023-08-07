@@ -28,13 +28,17 @@ def education_preproc(edu_df):
     edu_df.columns = ['Edu_level', 'Total']
     return edu_df
 
-def education_att(county_name):
+def education_att(county_name, label_type=0):
     edu_df = pd.read_csv('./Data/Educational_Attainment_county.csv')
     edu_df_state = pd.read_csv('./Data/Educational_Attainment_state.csv')
     edu_df = edu_df[edu_df['NAME'] == county_name]
     edu_df = education_preproc(edu_df)
     edu_df_state = education_preproc(edu_df_state)
-    light_orange = (1.0, 0.8, 0.64)
+    if label_type == 1:
+        edu_bach = edu_df[edu_df['Edu_level'].isin(["Bachelor's Degree","Graduate or Professional degree"])]['Total'].sum()/edu_df['Total'].sum()
+        edu_bach_state = edu_df_state[edu_df_state['Edu_level'].isin(["Bachelor's Degree","Graduate or Professional degree"])]['Total'].sum()/edu_df_state['Total'].sum()
+        return round(edu_bach,2)*100, round(edu_bach_state, 2)*100
+    light_orange = (1.0, 0.6, 0.0)
     fig, ax = plt.subplots(figsize=(15, 10))
     sns.set_style('darkgrid')
     total = sum(edu_df['Total'])
@@ -48,12 +52,12 @@ def education_att(county_name):
     x, ymins, ymaxs = list(
         zip(*[(targets[v.get_text()], v.get_position()[1] - 0.6 / 2, v.get_position()[1] + 0.6 / 2) for v in
               ax.get_yticklabels()]))
-    ax.vlines(x=x, color='blue', linestyle='-', linewidth=5, capstyle='butt', ymin=ymins, ymax=ymaxs)
+    ax.vlines(x=x, color='black', linestyle='-', linewidth=5, capstyle='butt', ymin=ymins, ymax=ymaxs)
     plot_labels = [f"{x:,}" for x in list(edu_df['Total'])]
     ax.bar_label(ax.containers[0], labels=plot_labels, fontsize=37, label_type='edge', padding=10)
     plt.box(False)
     ax.set_xlabel('', visible=False)
-    ax.tick_params(axis='y', which='major', labelsize=48)
+    ax.tick_params(axis='y', which='major', labelsize=50)
     ax.tick_params(axis='x', which='major', labelsize=40)
     plt.yticks(fontname=font)
     ax.set_ylabel('', visible=False)
@@ -61,7 +65,7 @@ def education_att(county_name):
     plt.xticks(list(range(0, total + 5, total // 5)), [str(x) + '%' for x in list(range(0, 101, 20))])
     plt.savefig(f'./Visualizations/{county_name}_education.png', dpi=300, bbox_inches='tight')
 
-education_att('Champaign County')
+education_att('Champaign County',1)
 
 def commute(county_name):
     county_name = county_name + ", Illinois"
@@ -88,13 +92,18 @@ def mode_travel_preproc(travel_df):
     travel_df.columns = ['Vehicle', 'Total']
     return travel_df
 
-def mode_travel(county_name):
+def mode_travel(county_name, label_type=0):
     travel_df = pd.read_csv('./Data/Vehicles_county.csv')
     travel_df_state = pd.read_csv('./Data/Vehicles_state.csv')
     travel_df = travel_df[travel_df['NAME'] == county_name]
     travel_df = mode_travel_preproc(travel_df)
     travel_df_state = mode_travel_preproc(travel_df_state)
-    light_orange = (1.0, 0.8, 0.64)
+    if label_type == 1:
+        mode = travel_df.iloc[travel_df['Total'].idxmax()]['Vehicle']
+        county_per = travel_df[travel_df['Vehicle']==mode]['Total'].tolist()[0]/travel_df['Total'].sum()
+        state_per = travel_df_state[travel_df_state['Vehicle'] == mode]['Total'].tolist()[0] / travel_df_state['Total'].sum()
+        return mode, round(county_per,2)*100,round(state_per,2)*100
+    light_orange = (1.0, 0.6, 0.0)
     fig, ax = plt.subplots(figsize=(15, 10))
     sns.set_style('darkgrid')
     total = sum(travel_df['Total'])
@@ -108,7 +117,7 @@ def mode_travel(county_name):
     x, ymins, ymaxs = list(
         zip(*[(targets[v.get_text()], v.get_position()[1] - 0.6 / 2, v.get_position()[1] + 0.6 / 2) for v in
               ax.get_yticklabels()]))
-    ax.vlines(x=x, color='blue', linestyle='-', linewidth=5, capstyle='butt', ymin=ymins, ymax=ymaxs)
+    ax.vlines(x=x, color='black', linestyle='-', linewidth=5, capstyle='butt', ymin=ymins, ymax=ymaxs)
     plot_labels = [f"{x:,}" for x in list(travel_df['Total'])]
     ax.bar_label(ax.containers[0], labels=plot_labels, fontsize=40, label_type='edge', padding=10)
     plt.box(False)
@@ -124,7 +133,7 @@ def mode_travel(county_name):
     plt.savefig(f'./Visualizations/{county_name}_vehicle.png', dpi=300, bbox_inches='tight')
 
 
-mode_travel('Champaign County')
+mode_travel('Champaign County',1)
 
 def occupation_preproc(occ_df):
     occ_df.columns = [re.sub('TotalCivilian employed population 16 years and over', '', i) for i in occ_df.columns]
@@ -132,20 +141,30 @@ def occupation_preproc(occ_df):
                 'Sales and office occupations', 'Natural resources.construction.and maintenance occupations',
                 'Production.transportation.and material moving occupations']
     occ_df = occ_df[col_list]
-    finalcols = ['Management, science and related', 'Services', 'Sales and office', 'Natural Resources and maintenance',
-                 'Production and Transportation']
+    finalcols = ['Management, science \n& related', 'Services', 'Sales & office', 'Natural Resources \n& maintenance',
+                 'Production & Transportation']
     occ_df.columns = finalcols
     occ_df = occ_df.T.reset_index()
     occ_df.columns = ['Occupation', 'Total']
     return occ_df
 
-def occupation(county_name):
+def occupation(county_name, label_type=0):
     occ_df = pd.read_csv('./Data/Occupation_county.csv')
     occ_df_state = pd.read_csv('./Data/Occupation_state.csv')
     occ_df = occ_df[occ_df['NAME'] == county_name]
     occ_df = occupation_preproc(occ_df)
     occ_df_state = occupation_preproc(occ_df_state)
-    light_orange = (1.0, 0.8, 0.64)
+    if label_type==1:
+        occ = occ_df.iloc[occ_df['Total'].idxmax()]['Occupation']
+        county_per = occ_df[occ_df['Occupation'] == occ]['Total'].tolist()[0] / occ_df['Total'].sum()
+        state_per = occ_df_state[occ_df_state['Occupation'] == occ]['Total'].tolist()[0] / occ_df_state['Total'].sum()
+        if round(county_per,2)*100 < round(state_per,2)*100:
+            return occ.replace("\n",""), round(county_per,2)*100,round(state_per,2)*100, "lower than"
+        elif round(county_per,2)*100 > round(state_per,1)*100:
+            return occ.replace("\n",""), round(county_per,2)*100,round(state_per,2)*100, "greater than"
+        else:
+            return occ.replace("\n",""), round(county_per,2)*100,round(state_per,2)*100, "equal to"
+    light_orange = (1.0, 0.6, 0.0)
     fig, ax = plt.subplots(figsize=(15, 10))
     sns.set_style('darkgrid')
     total = sum(occ_df['Total'])
@@ -159,7 +178,7 @@ def occupation(county_name):
     x, ymins, ymaxs = list(
         zip(*[(targets[v.get_text()], v.get_position()[1] - 0.6 / 2, v.get_position()[1] + 0.6 / 2) for v in
               ax.get_yticklabels()]))
-    ax.vlines(x=x, color='blue', linestyle='-', linewidth=5, capstyle='butt', ymin=ymins, ymax=ymaxs)
+    ax.vlines(x=x, color='black', linestyle='-', linewidth=5, capstyle='butt', ymin=ymins, ymax=ymaxs)
     plot_labels = [f"{x:,}" for x in list(occ_df['Total'])]
     ax.bar_label(ax.containers[0], labels=plot_labels, fontsize=40, label_type='edge', padding=10)
     plt.box(False)
@@ -172,7 +191,7 @@ def occupation(county_name):
     plt.xticks(list(range(0, total+5, total // 5)), [str(x) + '%' for x in list(range(0, 101, 20))])
     plt.savefig(f'./Visualizations/{county_name}_occupation.png', dpi=300, bbox_inches='tight')
 
-occupation('Champaign County')
+occupation('Bond County',1)
 
 def industry_preproc(industry_df):
     industry_df.columns = [re.sub('TotalFull-time.year-round civilian employed population 16 years and over', '', col)
@@ -194,13 +213,23 @@ def industry_preproc(industry_df):
     industry_df.columns = ['Industry', 'Total']
     return industry_df
 
-def industry(county_name):
+def industry(county_name, label_type=0):
     industry_df = pd.read_csv('./Data/Industry_county.csv')
     industry_df_state = pd.read_csv('./Data/Industry_state.csv')
     industry_df = industry_df[industry_df['NAME'] == county_name]
     industry_df = industry_preproc(industry_df)
     industry_df_state = industry_preproc(industry_df_state)
-    light_orange = (1.0, 0.8, 0.64)
+    if label_type==1:
+        occ = industry_df.iloc[industry_df['Total'].idxmax()]['Industry']
+        county_per = industry_df[industry_df['Industry'] == occ]['Total'].tolist()[0] / industry_df['Total'].sum()
+        state_per = industry_df_state[industry_df_state['Industry'] == occ]['Total'].tolist()[0] / industry_df_state['Total'].sum()
+        if round(county_per,2) *100 < round(state_per,2) *100:
+            return occ.replace("\n",""), round(county_per,2) *100,round(state_per,2) *100, "lesser than"
+        elif round(county_per,2) *100 > round(state_per,2) *100:
+            return occ.replace("\n",""), round(county_per,2) *100,round(state_per,2) *100, "greater than"
+        else:
+            return occ.replace("\n",""), round(county_per,2) *100,round(state_per,2) *100, "equal to"
+    light_orange = (1.0, 0.6, 0.0)
     fig, ax = plt.subplots(figsize=(16, 35))
     sns.set_style('darkgrid')
     total = sum(industry_df['Total'])
@@ -214,7 +243,7 @@ def industry(county_name):
     x, ymins, ymaxs = list(
         zip(*[(targets[v.get_text()], v.get_position()[1] - 0.6 / 2, v.get_position()[1] + 0.6 / 2) for v in
               ax.get_yticklabels()]))
-    ax.vlines(x=x, color='blue', linestyle='-', linewidth=5, capstyle='butt', ymin=ymins, ymax=ymaxs)
+    ax.vlines(x=x, color='black', linestyle='-', linewidth=5, capstyle='butt', ymin=ymins, ymax=ymaxs)
     plot_labels = [f"{x:,}" for x in list(industry_df['Total'])]
     ax.bar_label(ax.containers[0], labels=plot_labels, fontsize=45, label_type='edge', padding=10)
     plt.box(False)
@@ -225,11 +254,11 @@ def industry(county_name):
     plt.yticks(range(13), xlabels_new,fontname=font)
     ax.set_ylabel('', visible=False)
     plt.rc('axes', labelsize=5)
-    blue = (0, 0, 0.80)
+    blue = (0, 0, 0)
     colors = {'State': blue, county_name: light_orange}
     labels = list(colors.keys())
     handles = [plt.Rectangle((0, 0), 0.5, 0.5, color=colors[label]) for label in labels]
-    plt.legend(handles, labels, fontsize=55, loc="upper center", bbox_to_anchor=(0.5, -0.05), facecolor="white",
+    plt.legend(handles, labels, fontsize=55, loc="upper center", bbox_to_anchor=(0.5, -0.038), facecolor="white",
                edgecolor="white")
     plt.xticks(list(range(0, (total+11), total//5)), [str(x) + '%' for x in list(range(0, 101, 20))])
     plt.savefig(f'./Visualizations/{county_name}_industry.png', dpi=300, bbox_inches='tight')
@@ -241,13 +270,17 @@ def vehicle_preproc(vehicle_df):
     vehicle_df.columns = ['Vehicle_count', 'Total']
     return vehicle_df
 
-def vehicle_count(county_name):
+def vehicle_count(county_name, label_type=0):
     vehicle_df = pd.read_csv('./Data/Vehicle_count_county.csv')
     vehicle_df_state = pd.read_csv('./Data/Vehicle_count_state.csv')
     vehicle_df = vehicle_df[vehicle_df['NAME'] == county_name]
     vehicle_df = vehicle_preproc(vehicle_df)
     vehicle_df_state = vehicle_preproc(vehicle_df_state)
-    light_orange = (1.0, 0.8, 0.64)
+    if label_type ==1:
+        county_count = vehicle_df.iloc[vehicle_df['Total'].idxmax()]['Vehicle_count']
+        state_count = vehicle_df_state.iloc[vehicle_df_state['Total'].idxmax()]['Vehicle_count']
+        return county_count, state_count
+    light_orange = (1.0, 0.6, 0.0)
     fig, ax = plt.subplots(figsize=(15, 10))
     sns.set_style('darkgrid')
     total = sum(vehicle_df['Total'])
@@ -259,7 +292,7 @@ def vehicle_count(county_name):
     x, ymins, ymaxs = list(
         zip(*[(targets[v.get_text()], v.get_position()[1] - 0.6 / 2, v.get_position()[1] + 0.6 / 2) for v in
               ax.get_yticklabels()]))
-    ax.vlines(x=x, color='blue', linestyle='-', linewidth=5, capstyle='butt', ymin=ymins, ymax=ymaxs)
+    ax.vlines(x=x, color='black', linestyle='-', linewidth=5, capstyle='butt', ymin=ymins, ymax=ymaxs)
     plot_labels = [f"{x:,}" for x in list(vehicle_df['Total'])]
     ax.bar_label(ax.containers[0], labels=plot_labels, fontsize=40, label_type='edge', padding=10)
     plt.box(False)
@@ -272,7 +305,7 @@ def vehicle_count(county_name):
     plt.xticks(list(range(0, total+20, total//5)), [str(x) + '%' for x in list(range(0, 101, 20))])
     plt.savefig(f'./Visualizations/{county_name}_vehcilecount.png', dpi=300, bbox_inches='tight')
 
-vehicle_count('Champaign County')
+vehicle_count('Champaign County',1)
 
 def language_preproc(lang_df):
     languages_dict = {}
@@ -289,19 +322,25 @@ def language_preproc(lang_df):
     for lang in languages_dict:
         lang_df[lang] = lang_df[languages_dict[lang]].sum(axis=1)
         lang_df.drop(columns=lang_df[languages_dict[lang]], inplace=True, axis=1)
+    lang_df.columns = [item.replace("Asian and Pacific Island languages" ,"Asian & Pacific Island languages") for item in lang_df.columns]
     lang_df = lang_df[lang_df.columns[-5:]].T.reset_index()
     lang_df.columns = ['Language', 'Total']
     return lang_df
-def language(county_name):
+def language(county_name, label_type=0):
     lang_df = pd.read_csv('./Data/Languages_county.csv')
     lang_df_state = pd.read_csv('./Data/Languages_state.csv')
     lang_df = lang_df[lang_df['NAME'] == county_name]
     lang_df = language_preproc(lang_df)
     lang_df_state = language_preproc(lang_df_state)
+    if label_type ==1:
+        lang_eng = lang_df[lang_df['Language'] == "Speak only English"]['Total'].tolist()[0]/ lang_df['Total'].sum()
+        lang_eng_state = lang_df_state[lang_df_state['Language'] == "Speak only English"]['Total'].tolist()[0]/ \
+                         lang_df_state['Total'].sum()
+        return round(lang_eng, 2)*100, round(lang_eng_state, 2)*100
     total = sum(lang_df['Total'])
     state_total = sum(lang_df_state['Total'])
     targets = {x:((y/state_total))*total for x,y in zip(lang_df_state['Language'], lang_df_state['Total'])}
-    light_orange = (1.0, 0.8, 0.64)
+    light_orange = (1.0, 0.6, 0.0)
     fig, ax = plt.subplots(figsize=(15, 10))
     sns.set_style('darkgrid')
     sns.barplot(x=len(lang_df['Total']) * [total], y=lang_df['Language'], orient='h', color='white', width=0.6)
@@ -310,7 +349,7 @@ def language(county_name):
     x, ymins, ymaxs = list(
         zip(*[(targets[v.get_text()], v.get_position()[1] - 0.6 / 2, v.get_position()[1] + 0.6 / 2) for v in
               ax.get_yticklabels()]))
-    ax.vlines(x=x, color='blue', linestyle='-', linewidth=5, capstyle='butt', ymin=ymins, ymax=ymaxs)
+    ax.vlines(x=x, color='black', linestyle='-', linewidth=5, capstyle='butt', ymin=ymins, ymax=ymaxs)
     plot_labels = [f"{x:,}" for x in list(lang_df['Total'])]
     ax.bar_label(ax.containers[0], labels=plot_labels, fontsize=40, label_type='edge', padding=10)
     plt.box(False)
@@ -323,7 +362,7 @@ def language(county_name):
     plt.xticks(list(range(0, total+5, total//5)), [str(x) + '%' for x in list(range(0, 101, 20))])
     plt.savefig(f'./Visualizations/{county_name}_languageimage.png', dpi=300, bbox_inches='tight')
 
-language('Champaign County')
+language('Champaign County',1)
 def clean_population_cols(df):
     df['0-9 years'] = df['Under 5 years'] + df['5 to 9 years']
     df['10-19 years'] = df['10 to 14 years'] + df['15 to 19 years']
@@ -341,16 +380,15 @@ def clean_population_cols(df):
        '75 to 79 years', '80 to 84 years', '85 years and over'], axis=1, inplace=True)
     return df.T
 
-def population_pyramid(county_name):
-    pop_df = pd.read_csv('./Data/Population_by_age_county.csv')
-    pop_df = pop_df[pop_df['NAME'] == county_name]
-    pop_df.columns = [col.replace('TotalTotal population','') for col in pop_df.columns]
-    gender_cols = [col for col in pop_df.columns if re.search('Male|Female', col) and not re.search('Percen|SELECTED|SUMMARY', col)]
+def pop_p(pop_df):
+    pop_df.columns = [col.replace('TotalTotal population', '') for col in pop_df.columns]
+    gender_cols = [col for col in pop_df.columns if
+                   re.search('Male|Female', col) and not re.search('Percen|SELECTED|SUMMARY', col)]
     pop_df = pop_df[gender_cols]
     dataframe_dict = {'Male': {}, 'Female': {}}
     for col in pop_df.columns:
         if re.search('Male', col):
-            temp = re.sub('Male|Total populationAGE','', col)
+            temp = re.sub('Male|Total populationAGE', '', col)
             dataframe_dict['Male'][temp] = pop_df[col].values.tolist()[0]
         elif re.search('Female', col):
             temp = re.sub('Female|Total populationAGE', '', col)
@@ -362,23 +400,53 @@ def population_pyramid(county_name):
         if key == 'Female':
             y = pd.DataFrame.from_dict(dataframe_dict['Female'], orient='index')
             y.columns = ['Female']
-    x = pd.concat([x,y], axis=1)
+    x = pd.concat([x, y], axis=1)
     x = clean_population_cols(x.T)
     x.reset_index(inplace=True)
-    x.columns = ['Age','Male', 'Female']
-    x.drop([0],axis=0, inplace=True)
+    x.columns = ['Age', 'Male', 'Female']
+    x.drop([0], axis=0, inplace=True)
+    x['total'] = x['Male'] + x['Female']
+    return x
+def population_pyramid(county_name, label=0):
+    pop_df = pd.read_csv('./Data/Population_by_age_county.csv')
+    pop_df_state = pd.read_csv('./Data/Population_by_age_state.csv')
+    pop_df = pop_df[pop_df['NAME'] == county_name]
+    x = pop_p(pop_df)
+    x_state = pop_p(pop_df_state)
+    if label == 1:
+        max_id = x['total'].idxmax()-1
+        age = x.iloc[max_id]['Age']
+        percent = x.iloc[max_id]['total']/x['total'].sum()
+        return age, round(percent,2)*100
     age_order = list(x['Age'].unique()[::-1])
     fig, ax = plt.subplots(figsize=(27,15))
-    total = max(max(x['Male']), max(x['Female']))
+    male_total = x['Male'].sum()
+    female_total = x['Female'].sum()
     x['Male'] = x['Male']*-1
-    blue= (0.67,  0.75, 0.90)
-    light_orange = (1.0, 0.8, 0.64)
+    x_state['Male'] = x_state['Male'] * -1
+    male_total_state = x_state['Male'].sum()
+    female_total_state = x_state['Female'].sum()
+    male_targets = {x: ((y / male_total_state)) * -male_total for x, y in zip(x['Age'], x_state['Male'])}
+    female_targets = {x: ((y / female_total_state)) * female_total for x, y in zip(x['Age'], x_state['Female'])}
+    blue= (0.0, 0.4, 1.0)
+    light_orange = (1.0, 0.6, 0.0)
     ax1 = sns.barplot(x='Male', y='Age', data=x, order=age_order, color=blue, lw =0, width=0.5)
     sns.barplot(x='Female', y='Age', data=x, order=age_order, color=light_orange, lw =0, width=0.5)
-    ax.tick_params(axis='y', which='major', labelsize=43)
+    x, ymins, ymaxs = list(
+        zip(*[(male_targets[v.get_text()], v.get_position()[1] - 0.6 / 2, v.get_position()[1] + 0.6 / 2) for v in
+              ax.get_yticklabels()]))
+    ax.vlines(x=x, color='black', linestyle='-', linewidth=4, capstyle='butt', ymin=ymins, ymax=ymaxs)
+    x, ymins, ymaxs = list(
+        zip(*[(female_targets[v.get_text()], v.get_position()[1] - 0.6 / 2, v.get_position()[1] + 0.6 / 2) for v in
+              ax.get_yticklabels()]))
+    ax.vlines(x=x, color='black', linestyle='-', linewidth=4, capstyle='butt', ymin=ymins, ymax=ymaxs)
+    ax.tick_params(axis='y', which='major', labelsize=48)
     ax.tick_params(axis='x', which='major', labelsize=37)
     plt.yticks(fontname=font)
-    plt.xticks(list(range(-total,total-6,total//5)), [str(i) + '%' for i in range(-25,25,5)])
+    tick_list = list(range(-male_total, 1, male_total//4))[:5]
+    tick_list.extend(list(range(0,female_total+1, female_total//4))[1:-1])
+    labels = [100, 75, 50, 25, 0, 25, 50, 75]
+    plt.xticks(tick_list, [str(i) + '%' for i in labels])
     ax.set_xlabel('', visible=False)
     plt.box(False)
     colors = {'Male': blue, 'Female':  light_orange}
@@ -410,18 +478,29 @@ def income_preproc(income_df):
         c = c.replace('to', ' - ')
         c = c.replace('HouseholdsTotal', '')
         col_list.append(c)
-    income_df.columns = ["Less than $10,000", "10,000 - 14,999", "15,000 - 24,999", "25,000 - 34,999", "35,000 - 49,999", "50,000 - 74,999", "75,000 - 99,999", "100,000 - 149,999", "150,000 - 199,999", "200,000 or more"]
+    income_df.columns = ["Less than $10,000", "$10,000 - 14,999", "$15,000 - 24,999", "$25,000 - 34,999", "$35,000 - 49,999", "$50,000 - 74,999", "$75,000 - 99,999", "$100,000 - 149,999", "$150,000 - 199,999", "$200,000 or more"]
     income_df = income_df.T.reset_index()
     income_df.columns = ['income', 'Percent']
     return income_df
-def housing_income(county_name):
+def housing_income(county_name, label_type=0):
     income_df = pd.read_csv('./Data/Household_income_county.csv')
     income_df_state = pd.read_csv('./Data/Household_income_state.csv')
     income_df = income_df[income_df['NAME'] == county_name]
     income_df = income_preproc(income_df)
     income_df_state = income_preproc(income_df_state)
+    if label_type == 1:
+        max_id = income_df['Percent'].idxmax()
+        income_bracket = income_df.iloc[max_id]['income']
+        county_percent = income_df.iloc[max_id]['Percent']
+        state_percent  = income_df_state[income_df_state['income']== income_bracket]['Percent'].tolist()[0]
+        if round(county_percent, 2) > round(state_percent,2):
+            return income_bracket, county_percent, "greater"
+        elif round(county_percent, 2) < round(state_percent,2):
+            return income_bracket, county_percent, "lesser"
+        else:
+            return income_bracket, county_percent, "equal"
     targets = {x:y for x,y in zip(income_df_state['income'], income_df_state['Percent'])}
-    light_orange = (1.0, 0.8, 0.64)
+    light_orange = (1.0, 0.6, 0.0)
     fig, ax = plt.subplots(figsize=(10, 10))
     sns.set_style('darkgrid')
     sns.barplot(x=len(income_df['Percent']) * [100], y=income_df['income'], orient='h', color='white', width=0.4)
@@ -430,7 +509,7 @@ def housing_income(county_name):
     x, ymins, ymaxs = list(
         zip(*[(targets[v.get_text()], v.get_position()[1] - 0.6 / 2, v.get_position()[1] + 0.6 / 2) for v in
               ax.get_yticklabels()]))
-    ax.vlines(x=x, color='blue', linestyle='-', linewidth=4, capstyle='butt', ymin=ymins, ymax=ymaxs)
+    ax.vlines(x=x, color='black', linestyle='-', linewidth=4, capstyle='butt', ymin=ymins, ymax=ymaxs)
     plot_labels = [f"{x:,}" for x in list(income_df['Percent'])]
     ax.bar_label(ax.containers[0], labels=plot_labels, fontsize=25, label_type='edge', padding=10)
     plt.box(False)
@@ -443,7 +522,7 @@ def housing_income(county_name):
     plt.xticks(list(range(0, 101, 20)), [str(x) + '%' for x in list(range(0, 101, 20))])
     plt.savefig(f'./Visualizations/{county_name}_incomeimage.png', dpi=300, bbox_inches='tight')
 
-housing_income('Champaign County')
+housing_income('Champaign County',1)
 
 def housing_table(county_name):
     housing_county_df = pd.read_csv('./Data/Housing_Tenure_county.csv')
@@ -453,7 +532,9 @@ def housing_table(county_name):
     housing_state_df = housing_state_df[['Abs_Total','Occupied','Vacant']]
     housing_county_df = pd.concat([housing_county_df, housing_state_df], axis=0)
     housing_county_df.columns = ['Total Housing Units','Occupied', 'Vacant']
+    housing_county_df.reset_index(inplace=True)
     rent_df = housing_rent(county_name)
+    rent_df.reset_index(inplace=True)
     housing_county_df = pd.concat([housing_county_df,rent_df], axis=1, join="inner")
     housing_county_df = housing_county_df[['Total Housing Units', 'Occupied', 'Owner occupied',
        'Renter occupied', 'Vacant']]
@@ -508,6 +589,9 @@ def housing_affordability(county_name):
     state_df = state_df.round(2)
     state_df.loc[:, ['State']] = state_df['State'].map('{:,.0f}'.format)
     state_df.loc[:, [county_name]] = state_df[county_name].map('{:,.0f}'.format)
+    state_df.astype(str)
+    state_df.loc[state_df['']== 'Rent > 30% of household income', [county_name,'State']] = state_df.loc[state_df['']== 'Rent > 30% of household income'][[county_name, 'State']] + "%"
+    state_df.loc[state_df['']== 'Cost > 30% of household income', [county_name,'State']] = state_df.loc[state_df['']== 'Cost > 30% of household income'][[county_name, 'State']] + "%"
     return state_df
 
 def race_preproc(race_df: pd.DataFrame):
@@ -520,12 +604,15 @@ def race_preproc(race_df: pd.DataFrame):
         else:
             final_col_list.append(col)
     final_col_list[final_col_list.index('Native Hawaiian and Other Pacific Islander')] = 'NH and Pacific Islander'
+    final_col_list = [item.replace("American Indian and Alaska Native", "American Indian & Alaska Native") for item in final_col_list]
+    final_col_list = [col.title() for col in final_col_list]
+    final_col_list = [item.replace("Nh And Pacific Islander", "NH and Pacific Islander") for item in final_col_list]
     race_df.columns = final_col_list
     race_df = race_df.T.reset_index()
     race_df.columns = ['Race', 'Total']
     return race_df
 
-def population_by_race(county_name):
+def population_by_race(county_name, label_type=0):
     race_df = pd.read_csv('./Data/Population_by_race_county.csv')
     race_df_state = pd.read_csv('./Data/Population_by_race_state.csv')
     race_df = race_df[race_df['NAME'] == county_name]
@@ -533,9 +620,18 @@ def population_by_race(county_name):
     race_df_state = race_preproc(race_df_state)
     state_total = race_df_state['Total'].sum()
     total = race_df['Total'].sum()
+    if label_type == 1:
+        white_county = race_df[race_df['Race']== 'White']['Total'].tolist()[0]/total
+        white_state = race_df_state[race_df_state['Race']== 'White']['Total'].tolist()[0]/race_df_state['Total'].sum()
+        if round(white_county,2)*100 > round(white_state,2)*100:
+            return round(white_county,2)*100, "less"
+        elif round(white_county,2)*100 < round(white_state,2)*100:
+            return round(white_county, 2) * 100, "more"
+        else:
+            return round(white_county, 2) * 100, "equal to"
     targets = {x:((y/state_total))*total for x,y in zip(race_df_state['Race'], race_df_state['Total'])}
     race_df['Percent'] = (race_df['Total']/total)*100
-    light_orange = (1.0, 0.8, 0.64)
+    light_orange = (1.0, 0.6, 0.0)
     fig, ax = plt.subplots(figsize=(9,6))
     sns.set_style('darkgrid')
     sns.barplot(x=len(race_df['Total'])*[total], y=race_df['Race'], orient='h', color= 'white', width=0.6)
@@ -544,9 +640,9 @@ def population_by_race(county_name):
     x, ymins, ymaxs = list(
         zip(*[(targets[v.get_text()], v.get_position()[1] - 0.6 / 2, v.get_position()[1] + 0.6 / 2) for v in
               ax.get_yticklabels()]))
-    ax.vlines(x=x, color='blue', linestyle='-', linewidth=4, capstyle='butt', ymin=ymins, ymax=ymaxs)
+    ax.vlines(x=x, color='black', linestyle='-', linewidth=4, capstyle='butt', ymin=ymins, ymax=ymaxs)
     plot_labels = [f"{x:,}" for x in list(race_df['Total'])]
-    ax.bar_label(ax.containers[0], labels = plot_labels,fontsize=20, label_type='edge', padding=10)
+    ax.bar_label(ax.containers[0], labels=plot_labels, fontsize=20, label_type='edge', padding=10)
     plt.box(False)
     ax.set_xlabel('', visible=False)
     ax.tick_params(axis='y', which='major', labelsize=27)
@@ -564,7 +660,7 @@ def eth_preproc(eth_df):
     eth_df = eth_df.T.reset_index()
     eth_df.columns = ['Ethnicity', 'Total']
     return eth_df
-def population_by_ethnicity(county_name):
+def population_by_ethnicity(county_name, label_type=0):
     eth_df = pd.read_csv('./Data/Population_by_ethnicity_county.csv')
     eth_df_state = pd.read_csv('./Data/Population_by_ethnicity_state.csv')
     eth_df = eth_df[eth_df['NAME'] == county_name]
@@ -572,10 +668,19 @@ def population_by_ethnicity(county_name):
     eth_df_state = eth_preproc(eth_df_state)
     state_total = eth_df_state['Total'].sum()
     total = eth_df['Total'].sum()
+    if label_type == 1:
+        hisp_county = eth_df[eth_df['Ethnicity']== 'Hispanic or Latino']['Total'].tolist()[0]/total
+        hisp_state = eth_df_state[eth_df_state['Ethnicity']== 'Hispanic or Latino']['Total'].tolist()[0]/eth_df_state['Total'].sum()
+        if round(hisp_county,2)*100 > round(hisp_state,2) *100:
+            return round(hisp_county,2)*100, "more than", round(hisp_state,2) *100
+        elif round(hisp_county,2)*100 < round(hisp_state,2) *100:
+            return round(hisp_county, 2) * 100, "less than", round(hisp_state,2) *100
+        else:
+            return round(hisp_county, 2) * 100, "equal to", round(hisp_state,2) *100
     targets = {x:((y/state_total))*total for x,y in zip(eth_df_state['Ethnicity'], eth_df_state['Total'])}
     eth_df['Percent'] = (eth_df['Total'] / total) * 100
-    light_orange = (1.0, 0.8, 0.64)
-    blue = (0, 0, 0.80)
+    light_orange = (1.0, 0.6, 0.0)
+    black = (0, 0, 0)
     fig, ax = plt.subplots(figsize=(10, 2))
     sns.barplot(x=len(eth_df['Total']) * [total], y=eth_df['Ethnicity'], orient='h', color='white', width=0.3)
     sns.barplot(x=eth_df['Total'], y=eth_df['Ethnicity'], orient='h', color=light_orange, width=0.6)
@@ -583,22 +688,22 @@ def population_by_ethnicity(county_name):
     x, ymins, ymaxs = list(
         zip(*[(targets[v.get_text()], v.get_position()[1] - 0.6 / 2, v.get_position()[1] + 0.6 / 2) for v in
               ax.get_yticklabels()]))
-    ax.vlines(x=x, color='blue', linestyle='-', linewidth=4, capstyle='butt', ymin=ymins, ymax=ymaxs)
+    ax.vlines(x=x, color='black', linestyle='-', linewidth=4, capstyle='butt', ymin=ymins, ymax=ymaxs)
     plot_labels = [f"{x:,}" for x in list(eth_df['Total'])]
-    ax.bar_label(ax.containers[0], labels=plot_labels, fontsize=25, label_type='edge', padding=10)
+    ax.bar_label(ax.containers[0], labels=plot_labels, fontsize=20, label_type='edge', padding=10)
     plt.box(False)
     plt.tight_layout()
     ax.set_xlabel('', visible=False)
-    ax.tick_params(axis='y', which='major', labelsize=30)
+    ax.tick_params(axis='y', which='major', labelsize=27)
     ax.tick_params(axis='x', which='major', labelsize=25)
     plt.yticks(fontname=font)
     ax.set_ylabel('', visible=False)
     plt.rcParams['font.size'] = 12
-    colors = {'State': blue, county_name: light_orange}
+    colors = {'State': black, county_name: light_orange}
     labels = list(colors.keys())
     handles = [plt.Rectangle((0, 0), 0.5, 0.5, color=colors[label]) for label in labels]
     plt.legend(handles, labels, fontsize=25, loc="upper center", bbox_to_anchor=(0.5, -0.4), facecolor="white", edgecolor="white")
     plt.xticks(list(range(0,total+1,int(0.2*total))), [str(x) + '%' for x in list(range(0, 110, 20))])
     plt.savefig(f'./Visualizations/{county_name}_Ethnicimage.png', dpi=300, bbox_inches='tight')
 
-population_by_ethnicity('Champaign County')
+population_by_ethnicity('Crawford County',1)
