@@ -25,9 +25,13 @@ reporting_new: This is the script that was initially developed that is used for 
 includes certain functions for Table creations.
 
 reporting_half: This is essentially the same as reporting.py, outside the page configurations. This looks to have a 1 columnar approach
-to create reports.
+to create reports. No additional configurations required while running this. This will generate the reports for all the counties. Also, it will
+create the visualization plots that are saved in the Visualizations folder.
 
 regions_data.csv: CSV file including all the different state agencies and their mapping to the individual counties.
 
 table_names.txt : This txt file is used for inputting all the different census bureau tables to extract data from.
+
+Data Glossary.pdf : This document was developed separately in Word and then appended at the end of our generated report using code.
+
 

@@ -12,6 +12,14 @@ import time
 
 
 def create_list(input_list, rep, pattern):
+    """
+    As the data is received in a string like format, we initially split be lines and format the lines
+    removing all noise characters in this function.
+    :param input_list:
+    :param rep:
+    :param pattern:
+    :return:
+    """
     final_list = []
     for string in input_list:
         string = pattern.sub(lambda m: rep[re.escape(m.group(0))], string)
@@ -23,6 +31,12 @@ def create_list(input_list, rep, pattern):
 
 
 def request_data(link, table_type):
+    """
+
+    :param link: API link
+    :param table_type: Detailed/Subject/Comparison table type.
+    :return:
+    """
     response_API = requests.get(link)
     df_list = response_API.text.split('\n')
     col_link = f"https://api.census.gov/data/2021/acs/acs5{table_type}/variables"
