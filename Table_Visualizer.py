@@ -684,7 +684,6 @@ def population_by_ethnicity(county_name, label_type=0):
     fig, ax = plt.subplots(figsize=(10, 2))
     sns.barplot(x=len(eth_df['Total']) * [total], y=eth_df['Ethnicity'], orient='h', color='white', width=0.3)
     sns.barplot(x=eth_df['Total'], y=eth_df['Ethnicity'], orient='h', color=light_orange, width=0.6)
-    # sns.barplot(x=len(race_df['Total'])*[total], y=race_df['Race'], orient='h', color= 'white', width=0.6)
     x, ymins, ymaxs = list(
         zip(*[(targets[v.get_text()], v.get_position()[1] - 0.6 / 2, v.get_position()[1] + 0.6 / 2) for v in
               ax.get_yticklabels()]))

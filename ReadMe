@@ -1,0 +1,33 @@
+The codebase has 3 scripts that are of primary significance:
+
+main.py: This script uses the Census Bureau APi and extracts the data. Also, since the data that we received from the Api
+isnt in usable format, we transform it using functions to output a dataframe that can be used by downstream functions.
+The file is also used for preparing the data for the dashboards. These functions are suffixed by _dashboard.
+
+Extraction of data:
+If we are dealing with the Age-Sex dataset, we need to call the method clean_population_frame() on the dataset extracted,
+else need to only run the clean_column_names() to get the data in the required format. LOC 268/270 needs to be changed
+accordingly.
+
+Dashboard preparation:
+A table dictionary is provided as input in the main method to map the various tables based on the race they represent.
+Each of these tables are suffixed by [A-I] that are relevant to a particular race. Example mappings are already mentioned
+in the code. LOC 278-284 are responsible for dashboard creation.
+
+Possible improvements: Presently, only a single table type can be taken in as input. We could input all table types with
+their race mappings requiring only a single run for dataset creation accros different tables. Presently, income, education
+ etc all need to be run separately.
+
+Table_Visualizer: This script is used to generate all the plots that are used in the various reports. There are certain helper
+functions also defined that help with the preparation of data for plot creation.
+
+reporting_new: This is the script that was initially developed that is used for creating the 2 column report. It also
+includes certain functions for Table creations.
+
+reporting_half: This is essentially the same as reporting.py, outside the page configurations. This looks to have a 1 columnar approach
+to create reports.
+
+regions_data.csv: CSV file including all the different state agencies and their mapping to the individual counties.
+
+table_names.txt : This txt file is used for inputting all the different census bureau tables to extract data from.
+
